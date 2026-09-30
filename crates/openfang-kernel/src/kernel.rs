@@ -2954,13 +2954,20 @@ impl OpenFangKernel {
             message.to_string()
         };
 
+        // Lean mode: skip tools for simple queries (saves ~16k tokens)
+        let is_lean_msg = openfang_runtime::prompt_builder::is_lean_query(message);
+        let tools_for_loop: Vec<ToolDefinition> = if is_lean_msg {
+            Vec::new()
+        } else {
+            tools
+        };
         let result = run_agent_loop(
             &manifest,
             &message_with_links,
             &mut session,
             &self.memory,
             driver,
-            &tools,
+            &tools_for_loop,
             kernel_handle,
             Some(&skill_snapshot),
             Some(&self.mcp_connections),
