@@ -2171,7 +2171,13 @@ impl OpenFangKernel {
 
         // Use the workspace-aware snapshot for tool resolution so both global
         // and workspace skill tools are visible to the LLM.
-        let tools = self.available_tools_with_registry(agent_id, Some(&skill_snapshot));
+        // Lean mode: skip all tools for simple queries (saves ~15k tokens).
+        let is_lean = openfang_runtime::prompt_builder::is_lean_query(message);
+        let tools = if is_lean {
+            Vec::new()
+        } else {
+            self.available_tools_with_registry(agent_id, Some(&skill_snapshot))
+        };
         let tools = entry.mode.filter_tools(tools);
 
         // Build the structured system prompt via prompt_builder
@@ -2199,6 +2205,7 @@ impl OpenFangKernel {
                 .collect();
 
             let prompt_ctx = openfang_runtime::prompt_builder::PromptContext {
+                is_lean: openfang_runtime::prompt_builder::is_lean_query(message),
                 agent_name: manifest.name.clone(),
                 agent_description: manifest.description.clone(),
                 base_system_prompt: manifest.model.system_prompt.clone(),
@@ -2746,7 +2753,13 @@ impl OpenFangKernel {
 
         // Use the workspace-aware snapshot for tool resolution so both global
         // and workspace skill tools are visible to the LLM.
-        let tools = self.available_tools_with_registry(agent_id, Some(&skill_snapshot));
+        // Lean mode: skip all tools for simple queries (saves ~15k tokens).
+        let is_lean = openfang_runtime::prompt_builder::is_lean_query(message);
+        let tools = if is_lean {
+            Vec::new()
+        } else {
+            self.available_tools_with_registry(agent_id, Some(&skill_snapshot))
+        };
         let tools = entry.mode.filter_tools(tools);
 
         info!(
@@ -2782,6 +2795,7 @@ impl OpenFangKernel {
                 .collect();
 
             let prompt_ctx = openfang_runtime::prompt_builder::PromptContext {
+                is_lean: openfang_runtime::prompt_builder::is_lean_query(message),
                 agent_name: manifest.name.clone(),
                 agent_description: manifest.description.clone(),
                 base_system_prompt: manifest.model.system_prompt.clone(),

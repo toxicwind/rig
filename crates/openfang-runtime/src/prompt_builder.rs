@@ -66,6 +66,42 @@ pub struct PromptContext {
     /// Read per-turn by the kernel so external writers (cron jobs, integrations)
     /// are reflected in the next LLM call. See issue #843.
     pub context_md: Option<String>,
+    /// Lean prompt mode: when true, `build_system_prompt` emits only the
+    /// agent identity and current-date sections. For simple queries where
+    /// tool behavior, safety, memory, persona, and workspace sections are
+    /// unnecessary overhead (saves ~90% of system-prompt tokens).
+    pub is_lean: bool,
+}
+
+/// Heuristic query classifier: a message qualifies for lean mode when it
+/// is short (< 100 chars) and contains no tool-trigger keywords.
+pub fn is_lean_query(message: &str) -> bool {
+    if message.chars().count() >= 100 {
+        return false;
+    }
+    const TOOL_KEYWORDS: &[&str] = &[
+        "tool", "execute", "run", "file", "read", "write", "search",
+        "create", "delete", "update", "list", "find", "open", "save",
+        "load", "fetch", "download", "upload", "edit", "modify",
+        "script", "command", "shell", "terminal", "code", "build",
+        "deploy", "commit", "push", "clone", "git", "test", "debug",
+    ];
+    let lower = message.to_lowercase();
+    let bytes = lower.as_bytes();
+    for kw in TOOL_KEYWORDS {
+        let mut start = 0;
+        while let Some(pos) = lower[start..].find(kw) {
+            let s = start + pos;
+            let e = s + kw.len();
+            let before_ok = s == 0 || !bytes[s - 1].is_ascii_alphanumeric();
+            let after_ok = e == bytes.len() || !bytes[e].is_ascii_alphanumeric();
+            if before_ok && after_ok {
+                return false;
+            }
+            start = s + 1;
+        }
+    }
+    true
 }
 
 /// Build the complete system prompt from a `PromptContext`.
@@ -74,6 +110,17 @@ pub struct PromptContext {
 /// omitted entirely (no empty headers). Subagent mode skips sections that
 /// add unnecessary context overhead.
 pub fn build_system_prompt(ctx: &PromptContext) -> String {
+    // Lean mode: identity + date only. The user message travels as a
+    // separate user turn, never inside the system prompt.
+    if ctx.is_lean {
+        let mut lean: Vec<String> = Vec::with_capacity(2);
+        lean.push(build_identity_section(ctx));
+        if let Some(ref date) = ctx.current_date {
+            lean.push(format!("## Current Date\nToday is {date}."));
+        }
+        return lean.join("\n\n");
+    }
+
     let mut sections: Vec<String> = Vec::with_capacity(12);
 
     // Section 1 — Agent Identity (always present)
@@ -946,6 +993,32 @@ mod tests {
         let prompt = build_system_prompt(&ctx);
         assert!(prompt.contains("You are helper"));
         assert!(prompt.contains("A helpful agent"));
+    }
+
+    #[test]
+    fn test_lean_prompt_identity_and_date_only() {
+        let mut ctx = basic_ctx();
+        ctx.is_lean = true;
+        ctx.current_date = Some("Wednesday, September 30, 2026".to_string());
+        let prompt = build_system_prompt(&ctx);
+        assert!(prompt.contains("You are Researcher"));
+        assert!(prompt.contains("## Current Date"));
+        assert!(!prompt.contains("## Tool Call Behavior"));
+        assert!(!prompt.contains("## Safety"));
+        assert!(!prompt.contains("## Memory"));
+        assert!(!prompt.contains("## Operational Guidelines"));
+    }
+
+    #[test]
+    fn test_is_lean_query_classifier() {
+        assert!(is_lean_query("OK"));
+        assert!(is_lean_query("Reply with just: OK"));
+        assert!(is_lean_query("what time is it?"));
+        assert!(is_lean_query("are you running?")); // "run" inside "running" must not trigger
+        assert!(!is_lean_query("read the file config.toml and summarize it"));
+        assert!(!is_lean_query("search the web for rust async runtimes"));
+        assert!(!is_lean_query(&"x".repeat(100))); // 100 chars is not < 100
+        assert!(!is_lean_query("please run the tests")); // word-boundary "run"
     }
 
     #[test]
