@@ -3722,6 +3722,7 @@ mod tests {
                     usage: TokenUsage {
                         input_tokens: 10,
                         output_tokens: 5,
+                        cached_tokens: 0,
                     },
                 })
             } else {
@@ -3733,6 +3734,7 @@ mod tests {
                     usage: TokenUsage {
                         input_tokens: 10,
                         output_tokens: 0,
+                        cached_tokens: 0,
                     },
                 })
             }
@@ -3756,6 +3758,7 @@ mod tests {
                 usage: TokenUsage {
                     input_tokens: 10,
                     output_tokens: 0,
+                    cached_tokens: 0,
                 },
             })
         }
@@ -3780,6 +3783,7 @@ mod tests {
                 usage: TokenUsage {
                     input_tokens: 10,
                     output_tokens: 8,
+                    cached_tokens: 0,
                 },
             })
         }
@@ -4074,6 +4078,7 @@ mod tests {
                     usage: TokenUsage {
                         input_tokens: 10,
                         output_tokens: 0,
+                        cached_tokens: 0,
                     },
                 })
             } else {
@@ -4088,6 +4093,7 @@ mod tests {
                     usage: TokenUsage {
                         input_tokens: 15,
                         output_tokens: 8,
+                        cached_tokens: 0,
                     },
                 })
             }
@@ -4111,6 +4117,7 @@ mod tests {
                 usage: TokenUsage {
                     input_tokens: 10,
                     output_tokens: 0,
+                    cached_tokens: 0,
                 },
             })
         }
@@ -5121,6 +5128,7 @@ mod tests {
                     usage: TokenUsage {
                         input_tokens: 18,
                         output_tokens: 10,
+                        cached_tokens: 0,
                     },
                 })
             } else {
@@ -5134,6 +5142,7 @@ mod tests {
                     usage: TokenUsage {
                         input_tokens: 24,
                         output_tokens: 8,
+                        cached_tokens: 0,
                     },
                 })
             }
@@ -5159,6 +5168,7 @@ mod tests {
                     usage: TokenUsage {
                         input_tokens: 20,
                         output_tokens: 15,
+                        cached_tokens: 0,
                     },
                 })
             } else {
@@ -5173,6 +5183,7 @@ mod tests {
                     usage: TokenUsage {
                         input_tokens: 30,
                         output_tokens: 12,
+                        cached_tokens: 0,
                     },
                 })
             }

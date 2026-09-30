@@ -2275,7 +2275,7 @@ impl OpenFangKernel {
                 peer_agents,
                 current_date: Some(
                     chrono::Local::now()
-                        .format("%A, %B %d, %Y (%Y-%m-%d %H:%M %Z)")
+                        .format("%A, %B %d, %Y")
                         .to_string(),
                 ),
                 sender_id,
@@ -2566,6 +2566,7 @@ impl OpenFangKernel {
             total_usage: openfang_types::message::TokenUsage {
                 input_tokens: 0,
                 output_tokens: 0,
+                cached_tokens: 0,
             },
             iterations: 1,
             cost_usd: None,
@@ -2626,6 +2627,7 @@ impl OpenFangKernel {
             total_usage: openfang_types::message::TokenUsage {
                 input_tokens: 0,
                 output_tokens: 0,
+                cached_tokens: 0,
             },
             cost_usd: None,
             iterations: 1,
@@ -2865,7 +2867,7 @@ impl OpenFangKernel {
                 peer_agents,
                 current_date: Some(
                     chrono::Local::now()
-                        .format("%A, %B %d, %Y (%Y-%m-%d %H:%M %Z)")
+                        .format("%A, %B %d, %Y")
                         .to_string(),
                 ),
                 sender_id,

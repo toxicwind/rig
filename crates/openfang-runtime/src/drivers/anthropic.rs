@@ -819,6 +819,7 @@ fn convert_response(api: ApiResponse) -> CompletionResponse {
         usage: TokenUsage {
             input_tokens: api.usage.input_tokens,
             output_tokens: api.usage.output_tokens,
+            cached_tokens: 0,
         },
     }
 }

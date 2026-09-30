@@ -327,6 +327,9 @@ pub struct TokenUsage {
     pub input_tokens: u64,
     /// Tokens generated in the output.
     pub output_tokens: u64,
+    /// Tokens served from the provider's prompt cache (0 when unsupported).
+    #[serde(default)]
+    pub cached_tokens: u64,
 }
 
 impl TokenUsage {

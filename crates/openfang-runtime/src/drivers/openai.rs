@@ -10,7 +10,7 @@ use openfang_types::message::{ContentBlock, MessageContent, Role, StopReason, To
 use openfang_types::model_catalog::MOONSHOT_KIMI_BASE_URL;
 use openfang_types::tool::ToolCall;
 use serde::{Deserialize, Serialize};
-use tracing::{debug, warn};
+use tracing::{debug, info, warn};
 use zeroize::Zeroizing;
 
 /// Azure OpenAI API version query parameter.
@@ -64,6 +64,141 @@ impl OpenAIDriver {
         self.base_url.contains("moonshot")
             || model.to_lowercase().contains("kimi")
             || model.to_lowercase().contains("reasoner")
+    }
+
+    /// True if this driver talks to OpenRouter (supports prompt caching via cache_control).
+    fn is_openrouter(&self) -> bool {
+        self.base_url.contains("openrouter")
+    }
+
+    /// True if the request path supports OpenRouter prompt caching.
+    /// Covers direct OpenRouter base_urls AND herd-routed models
+    /// (e.g. "openrouter-free/..."): herd is a body-passthrough reverse proxy,
+    /// so cache_control reaches OpenRouter untouched.
+    fn supports_prompt_cache(&self, model: &str) -> bool {
+        self.is_openrouter() || model.to_lowercase().contains("openrouter")
+    }
+
+    /// Build a system message, using cache_control breakpoints for OpenRouter
+    /// prompt caching. The system prompt is byte-stable (date is daily-granular),
+    /// so a cache hit skips server-side prefill.
+    fn build_system_message(&self, text: String, model: &str) -> OaiMessage {
+        let content = if self.supports_prompt_cache(model) {
+            // OpenRouter: use Parts with cache_control on the block for prompt caching
+            OaiMessageContent::Parts(vec![OaiContentPart::Text {
+                text,
+                cache_control: Some(OaiCacheControl::ephemeral()),
+            }])
+        } else {
+            OaiMessageContent::Text(text)
+        };
+        OaiMessage {
+            role: "system".to_string(),
+            content: Some(content),
+            tool_calls: None,
+            tool_call_id: None,
+            reasoning_content: None,
+            reasoning: None,
+        }
+    }
+
+    /// Build the OpenAI message list for a completion request.
+    /// Shared by `complete()` and `stream()` so both paths behave identically,
+    /// including the OpenRouter `cache_control` breakpoint on system messages.
+    fn build_oai_messages(&self, request: &CompletionRequest) -> Vec<OaiMessage> {
+let mut oai_messages: Vec<OaiMessage> = Vec::new();
+
+        // Add system message if present (with cache_control for OpenRouter)
+        if let Some(ref system) = request.system {
+            oai_messages.push(self.build_system_message(system.clone(), &request.model));
+        }
+
+        // Convert messages
+        for msg in &request.messages {
+            match (&msg.role, &msg.content) {
+                (Role::System, MessageContent::Text(text)) if request.system.is_none() => {
+                    oai_messages.push(self.build_system_message(text.clone(), &request.model));
+                }
+                (Role::User, MessageContent::Text(text)) => {
+                    oai_messages.push(OaiMessage {
+                        role: "user".to_string(),
+                        content: Some(OaiMessageContent::Text(text.clone())),
+                        tool_calls: None,
+                        tool_call_id: None,
+                        reasoning_content: None,
+                        reasoning: None,
+                    });
+                }
+                (Role::Assistant, MessageContent::Text(text)) => {
+                    oai_messages.push(OaiMessage {
+                        role: "assistant".to_string(),
+                        content: Some(OaiMessageContent::Text(text.clone())),
+                        tool_calls: None,
+                        tool_call_id: None,
+                        reasoning_content: None,
+                        reasoning: None,
+                    });
+                }
+                (Role::User, MessageContent::Blocks(blocks)) => {
+                    // Handle tool results and images in user messages
+                    let mut parts: Vec<OaiContentPart> = Vec::new();
+                    let mut has_tool_results = false;
+                    for block in blocks {
+                        match block {
+                            ContentBlock::ToolResult {
+                                tool_use_id,
+                                content,
+                                ..
+                            } => {
+                                has_tool_results = true;
+                                oai_messages.push(OaiMessage {
+                                    role: "tool".to_string(),
+                                    content: Some(OaiMessageContent::Text(if content.is_empty() {
+                                        "(empty)".to_string()
+                                    } else {
+                                        content.clone()
+                                    })),
+                                    tool_calls: None,
+                                    tool_call_id: Some(tool_use_id.clone()),
+                                    reasoning_content: None,
+                                    reasoning: None,
+                                });
+                            }
+                            ContentBlock::Text { text, .. } => {
+                                parts.push(OaiContentPart::Text { text: text.clone(), cache_control: None });
+                            }
+                            ContentBlock::Image { media_type, data } => {
+                                parts.push(OaiContentPart::ImageUrl {
+                                    image_url: OaiImageUrl {
+                                        url: format!("data:{media_type};base64,{data}"),
+                                    },
+                                });
+                            }
+                            ContentBlock::Thinking { .. } => {}
+                            _ => {}
+                        }
+                    }
+                    if !parts.is_empty() && !has_tool_results {
+                        oai_messages.push(OaiMessage {
+                            role: "user".to_string(),
+                            content: Some(OaiMessageContent::Parts(parts)),
+                            tool_calls: None,
+                            tool_call_id: None,
+                            reasoning_content: None,
+                            reasoning: None,
+                        });
+                    }
+                }
+                (Role::Assistant, MessageContent::Blocks(blocks)) => {
+                    let assembled = assemble_assistant_message(blocks, &request.model, self);
+                    oai_messages.push(assembled);
+                }
+                _ => {}
+            }
+        }
+
+        strip_trailing_empty_assistant(&mut oai_messages);
+        oai_messages
     }
 
     /// Create a driver with additional HTTP headers (e.g. for Copilot IDE auth).
@@ -213,7 +348,11 @@ enum OaiMessageContent {
 #[serde(tag = "type")]
 enum OaiContentPart {
     #[serde(rename = "text")]
-    Text { text: String },
+    Text {
+        text: String,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        cache_control: Option<OaiCacheControl>,
+    },
     #[serde(rename = "image_url")]
     ImageUrl { image_url: OaiImageUrl },
 }
@@ -221,6 +360,19 @@ enum OaiContentPart {
 #[derive(Debug, Serialize)]
 struct OaiImageUrl {
     url: String,
+}
+
+/// Cache control for prompt caching.
+#[derive(Debug, Serialize)]
+struct OaiCacheControl {
+    #[serde(rename = "type")]
+    cache_type: String,
+}
+
+impl OaiCacheControl {
+    fn ephemeral() -> Self {
+        Self { cache_type: "ephemeral".into() }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -291,6 +443,25 @@ impl OaiResponseMessage {
 struct OaiUsage {
     prompt_tokens: u64,
     completion_tokens: u64,
+    /// OpenRouter prompt caching details (cached_tokens on cache hits).
+    #[serde(default)]
+    prompt_tokens_details: Option<OaiPromptTokensDetails>,
+}
+
+#[derive(Debug, Deserialize, Default)]
+struct OaiPromptTokensDetails {
+    #[serde(default)]
+    cached_tokens: u64,
+}
+
+impl OaiUsage {
+    /// Tokens served from prompt cache (0 when the provider doesn't report it).
+    fn cached_tokens(&self) -> u64 {
+        self.prompt_tokens_details
+            .as_ref()
+            .map(|d| d.cached_tokens)
+            .unwrap_or(0)
+    }
 }
 
 /// Strip trailing empty assistant messages without tool calls.
@@ -450,112 +621,7 @@ fn assemble_assistant_message(
 #[async_trait]
 impl LlmDriver for OpenAIDriver {
     async fn complete(&self, request: CompletionRequest) -> Result<CompletionResponse, LlmError> {
-        let mut oai_messages: Vec<OaiMessage> = Vec::new();
-
-        // Add system message if present
-        if let Some(ref system) = request.system {
-            oai_messages.push(OaiMessage {
-                role: "system".to_string(),
-                content: Some(OaiMessageContent::Text(system.clone())),
-                tool_calls: None,
-                tool_call_id: None,
-                reasoning_content: None,
-                reasoning: None,
-            });
-        }
-
-        // Convert messages
-        for msg in &request.messages {
-            match (&msg.role, &msg.content) {
-                (Role::System, MessageContent::Text(text)) if request.system.is_none() => {
-                    oai_messages.push(OaiMessage {
-                        role: "system".to_string(),
-                        content: Some(OaiMessageContent::Text(text.clone())),
-                        tool_calls: None,
-                        tool_call_id: None,
-                        reasoning_content: None,
-                        reasoning: None,
-                    });
-                }
-                (Role::User, MessageContent::Text(text)) => {
-                    oai_messages.push(OaiMessage {
-                        role: "user".to_string(),
-                        content: Some(OaiMessageContent::Text(text.clone())),
-                        tool_calls: None,
-                        tool_call_id: None,
-                        reasoning_content: None,
-                        reasoning: None,
-                    });
-                }
-                (Role::Assistant, MessageContent::Text(text)) => {
-                    oai_messages.push(OaiMessage {
-                        role: "assistant".to_string(),
-                        content: Some(OaiMessageContent::Text(text.clone())),
-                        tool_calls: None,
-                        tool_call_id: None,
-                        reasoning_content: None,
-                        reasoning: None,
-                    });
-                }
-                (Role::User, MessageContent::Blocks(blocks)) => {
-                    // Handle tool results and images in user messages
-                    let mut parts: Vec<OaiContentPart> = Vec::new();
-                    let mut has_tool_results = false;
-                    for block in blocks {
-                        match block {
-                            ContentBlock::ToolResult {
-                                tool_use_id,
-                                content,
-                                ..
-                            } => {
-                                has_tool_results = true;
-                                oai_messages.push(OaiMessage {
-                                    role: "tool".to_string(),
-                                    content: Some(OaiMessageContent::Text(if content.is_empty() {
-                                        "(empty)".to_string()
-                                    } else {
-                                        content.clone()
-                                    })),
-                                    tool_calls: None,
-                                    tool_call_id: Some(tool_use_id.clone()),
-                                    reasoning_content: None,
-                                    reasoning: None,
-                                });
-                            }
-                            ContentBlock::Text { text, .. } => {
-                                parts.push(OaiContentPart::Text { text: text.clone() });
-                            }
-                            ContentBlock::Image { media_type, data } => {
-                                parts.push(OaiContentPart::ImageUrl {
-                                    image_url: OaiImageUrl {
-                                        url: format!("data:{media_type};base64,{data}"),
-                                    },
-                                });
-                            }
-                            ContentBlock::Thinking { .. } => {}
-                            _ => {}
-                        }
-                    }
-                    if !parts.is_empty() && !has_tool_results {
-                        oai_messages.push(OaiMessage {
-                            role: "user".to_string(),
-                            content: Some(OaiMessageContent::Parts(parts)),
-                            tool_calls: None,
-                            tool_call_id: None,
-                            reasoning_content: None,
-                            reasoning: None,
-                        });
-                    }
-                }
-                (Role::Assistant, MessageContent::Blocks(blocks)) => {
-                    let assembled = assemble_assistant_message(blocks, &request.model, self);
-                    oai_messages.push(assembled);
-                }
-                _ => {}
-            }
-        }
-
-        strip_trailing_empty_assistant(&mut oai_messages);
+        let oai_messages = self.build_oai_messages(&request);
 
         let oai_tools: Vec<OaiTool> = request
             .tools
@@ -869,9 +935,20 @@ impl LlmDriver for OpenAIDriver {
 
             let mut usage = oai_response
                 .usage
-                .map(|u| TokenUsage {
-                    input_tokens: u.prompt_tokens,
-                    output_tokens: u.completion_tokens,
+                .map(|u| {
+                    let cached = u.cached_tokens();
+                    if cached > 0 {
+                        info!(
+                            cached_tokens = cached,
+                            input_tokens = u.prompt_tokens,
+                            "OpenRouter prompt cache hit"
+                        );
+                    }
+                    TokenUsage {
+                        input_tokens: u.prompt_tokens,
+                        output_tokens: u.completion_tokens,
+                        cached_tokens: cached,
+                    }
                 })
                 .unwrap_or_default();
 
@@ -906,83 +983,7 @@ impl LlmDriver for OpenAIDriver {
         tx: tokio::sync::mpsc::Sender<StreamEvent>,
     ) -> Result<CompletionResponse, LlmError> {
         // Build request (same as complete but with stream: true)
-        let mut oai_messages: Vec<OaiMessage> = Vec::new();
-
-        if let Some(ref system) = request.system {
-            oai_messages.push(OaiMessage {
-                role: "system".to_string(),
-                content: Some(OaiMessageContent::Text(system.clone())),
-                tool_calls: None,
-                tool_call_id: None,
-                reasoning_content: None,
-                reasoning: None,
-            });
-        }
-
-        for msg in &request.messages {
-            match (&msg.role, &msg.content) {
-                (Role::System, MessageContent::Text(text)) if request.system.is_none() => {
-                    oai_messages.push(OaiMessage {
-                        role: "system".to_string(),
-                        content: Some(OaiMessageContent::Text(text.clone())),
-                        tool_calls: None,
-                        tool_call_id: None,
-                        reasoning_content: None,
-                        reasoning: None,
-                    });
-                }
-                (Role::User, MessageContent::Text(text)) => {
-                    oai_messages.push(OaiMessage {
-                        role: "user".to_string(),
-                        content: Some(OaiMessageContent::Text(text.clone())),
-                        tool_calls: None,
-                        tool_call_id: None,
-                        reasoning_content: None,
-                        reasoning: None,
-                    });
-                }
-                (Role::Assistant, MessageContent::Text(text)) => {
-                    oai_messages.push(OaiMessage {
-                        role: "assistant".to_string(),
-                        content: Some(OaiMessageContent::Text(text.clone())),
-                        tool_calls: None,
-                        tool_call_id: None,
-                        reasoning_content: None,
-                        reasoning: None,
-                    });
-                }
-                (Role::User, MessageContent::Blocks(blocks)) => {
-                    for block in blocks {
-                        if let ContentBlock::ToolResult {
-                            tool_use_id,
-                            content,
-                            ..
-                        } = block
-                        {
-                            oai_messages.push(OaiMessage {
-                                role: "tool".to_string(),
-                                content: Some(OaiMessageContent::Text(if content.is_empty() {
-                                    "(empty)".to_string()
-                                } else {
-                                    content.clone()
-                                })),
-                                tool_calls: None,
-                                tool_call_id: Some(tool_use_id.clone()),
-                                reasoning_content: None,
-                                reasoning: None,
-                            });
-                        }
-                    }
-                }
-                (Role::Assistant, MessageContent::Blocks(blocks)) => {
-                    let assembled = assemble_assistant_message(blocks, &request.model, self);
-                    oai_messages.push(assembled);
-                }
-                _ => {}
-            }
-        }
-
-        strip_trailing_empty_assistant(&mut oai_messages);
+        let oai_messages = self.build_oai_messages(&request);
 
         let oai_tools: Vec<OaiTool> = request
             .tools
@@ -1226,6 +1227,9 @@ impl LlmDriver for OpenAIDriver {
                         if let Some(ct) = u["completion_tokens"].as_u64() {
                             usage.output_tokens = ct;
                         }
+                        if let Some(cached) = u["prompt_tokens_details"]["cached_tokens"].as_u64() {
+                            usage.cached_tokens = cached;
+                        }
                     }
 
                     let choices = match json["choices"].as_array() {
@@ -1364,6 +1368,7 @@ impl LlmDriver for OpenAIDriver {
                     finish = ?finish_reason,
                     input_tokens = usage.input_tokens,
                     output_tokens = usage.output_tokens,
+                    cached_tokens = usage.cached_tokens,
                     buffer_remaining = buffer.len(),
                     "SSE stream completed"
                 );
@@ -1684,6 +1689,7 @@ fn parse_groq_failed_tool_call(body: &str) -> Option<CompletionResponse> {
                 usage: TokenUsage {
                     input_tokens: 0,
                     output_tokens: 0,
+                    cached_tokens: 0,
                 },
             });
         }
@@ -1697,6 +1703,7 @@ fn parse_groq_failed_tool_call(body: &str) -> Option<CompletionResponse> {
         usage: TokenUsage {
             input_tokens: 0,
             output_tokens: 0,
+            cached_tokens: 0,
         },
     })
 }
@@ -2242,4 +2249,94 @@ mod tests {
             "issue #1098 regression: reasoning was stripped on resubmission"
         );
     }
+
+    #[test]
+    fn test_openrouter_system_message_has_cache_control() {
+        let driver = OpenAIDriver::new(
+            "test-key".to_string(),
+            "https://openrouter.ai/api/v1".to_string(),
+        );
+        assert!(driver.is_openrouter());
+        let msg = driver.build_system_message("hello".to_string(), "openai/gpt-4o");
+        let json = serde_json::to_value(&msg).unwrap();
+        assert_eq!(json["role"], "system");
+        let parts = json["content"].as_array().expect("content should be parts array");
+        assert_eq!(parts.len(), 1);
+        assert_eq!(parts[0]["type"], "text");
+        assert_eq!(parts[0]["text"], "hello");
+        assert_eq!(parts[0]["cache_control"]["type"], "ephemeral");
+    }
+
+    #[test]
+    fn test_non_openrouter_system_message_is_plain_text() {
+        let driver = OpenAIDriver::new(
+            "test-key".to_string(),
+            "https://api.openai.com/v1".to_string(),
+        );
+        assert!(!driver.is_openrouter());
+        let msg = driver.build_system_message("hello".to_string(), "gpt-4o");
+        let json = serde_json::to_value(&msg).unwrap();
+        assert_eq!(json["role"], "system");
+        assert_eq!(json["content"], "hello");
+    }
+
+    #[test]
+    fn test_herd_routed_openrouter_model_gets_cache_control() {
+        // Live path: driver -> herd :25100 -> OpenRouter. base_url has no
+        // "openrouter", but the model id does; herd passes the body through.
+        let driver = OpenAIDriver::new(
+            "test-key".to_string(),
+            "http://127.0.0.1:25100/v1".to_string(),
+        );
+        assert!(!driver.is_openrouter());
+        let msg = driver.build_system_message(
+            "hello".to_string(),
+            "openrouter-free/inclusionai/ling-3.0-flash-sante:free",
+        );
+        let json = serde_json::to_value(&msg).unwrap();
+        assert_eq!(
+            json["content"][0]["cache_control"]["type"],
+            "ephemeral"
+        );
+    }
+
+    #[test]
+    fn test_oai_usage_deserializes_cached_tokens() {
+        let body = r#"{"prompt_tokens": 25552, "completion_tokens": 23, "prompt_tokens_details": {"cached_tokens": 25000}}"#;
+        let usage: OaiUsage = serde_json::from_str(body).unwrap();
+        assert_eq!(usage.prompt_tokens, 25552);
+        assert_eq!(usage.cached_tokens(), 25000);
+    }
+
+    #[test]
+    fn test_oai_usage_missing_cache_details_defaults_zero() {
+        let body = r#"{"prompt_tokens": 100, "completion_tokens": 5}"#;
+        let usage: OaiUsage = serde_json::from_str(body).unwrap();
+        assert_eq!(usage.cached_tokens(), 0);
+    }
+
+    #[test]
+    fn test_build_oai_messages_caches_system_on_openrouter() {
+        let driver = OpenAIDriver::new(
+            "test-key".to_string(),
+            "https://openrouter.ai/api/v1".to_string(),
+        );
+        let req = CompletionRequest {
+            model: "x".to_string(),
+            system: Some("sys".to_string()),
+            messages: vec![],
+            tools: vec![],
+            max_tokens: 10,
+            temperature: 0.0,
+            thinking: None,
+        };
+        let msgs = driver.build_oai_messages(&req);
+        assert_eq!(msgs.len(), 1);
+        let json = serde_json::to_value(&msgs[0]).unwrap();
+        assert_eq!(
+            json["content"][0]["cache_control"]["type"],
+            "ephemeral"
+        );
+    }
+
 }

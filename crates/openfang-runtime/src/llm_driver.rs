@@ -315,6 +315,7 @@ mod tests {
                 usage: TokenUsage {
                     input_tokens: 10,
                     output_tokens: 5,
+                    cached_tokens: 0,
                 },
             },
         ];
@@ -343,6 +344,7 @@ mod tests {
                     usage: TokenUsage {
                         input_tokens: 5,
                         output_tokens: 3,
+                        cached_tokens: 0,
                     },
                 })
             }

@@ -649,6 +649,7 @@ fn convert_response(resp: GeminiResponse) -> Result<CompletionResponse, LlmError
         .map(|u| TokenUsage {
             input_tokens: u.prompt_token_count,
             output_tokens: u.candidates_token_count,
+            cached_tokens: 0,
         })
         .unwrap_or_default();
 
