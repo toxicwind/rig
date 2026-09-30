@@ -1,0 +1,6 @@
+[agent]
+name = "greeter"
+persona = "A friendly greeter that welcomes users and explains what it can do."
+model = "toolcall-local/qwen3.5-9b-tool"
+lane = "examples"
+task = "Greet the user and offer help."

@@ -1,41 +1,116 @@
+[![CI](https://github.com/toxicwind/rig/actions/workflows/ci.yml/badge.svg)](https://github.com/toxicwind/rig/actions/workflows/ci.yml)
+[![Rust](https://img.shields.io/badge/language-Rust-orange?logo=rust&logoColor=white)](https://www.rust-lang.org)
+[![license](https://img.shields.io/badge/license-Apache--2.0_OR_MIT-blue)](LICENSE-APACHE)
+[![version](https://img.shields.io/badge/version-0.6.9-green)](CHANGELOG.md)
+[![tests](https://img.shields.io/badge/tests-2696%2B_passing-brightgreen)](#dev--contributing)
+
 <p align="center">
-  <img src="public/assets/openfang-logo.png" width="160" alt="OpenFang Logo" />
+  <img src="public/assets/openfang-logo.png" width="160" alt="Rig Logo" />
 </p>
 
-<h1 align="center">OpenFang</h1>
-<h3 align="center">The Agent Operating System</h3>
+<h1 align="center">Rig</h1>
+<p align="center"><strong>A self-hosted runtime that runs autonomous AI agents for you, 24/7 — from a single binary.</strong></p>
 
-<div align="right">
+<p align="center">
+  <a href="docs/">Explore the docs »</a> ·
+  <a href="#quickstart">Quickstart »</a> ·
+  <a href="https://github.com/toxicwind/rig/issues/new?labels=bug&template=bug-report.md">Report Bug</a> ·
+  <a href="https://github.com/toxicwind/rig/issues/new?labels=enhancement&template=feature-request.md">Request Feature</a>
+</p>
 
-![Rust](https://img.shields.io/badge/language-Rust-orange?style=for-the-badge&logo=rust&logoColor=white)
-![license](https://img.shields.io/badge/license-Apache--2.0_OR_MIT-blue?style=for-the-badge)
-![version](https://img.shields.io/badge/version-0.6.9-green?style=for-the-badge)
-![tests](https://img.shields.io/badge/tests-2696%2B_passing-brightgreen?style=for-the-badge)
-![clippy](https://img.shields.io/badge/clippy-0_warnings-brightgreen?style=for-the-badge)
+![Rig terminal demo](docs/demo-terminal.svg)
 
-</div>
-
-> **Rig** — this is Chris's fork of OpenFang ([upstream](https://github.com/RightNow-AI/openfang)). Fork home: [toxicwind/rig](https://github.com/toxicwind/rig).
+> **Rig** is Chris's fork of OpenFang ([upstream](https://github.com/RightNow-AI/openfang)). Fork home: [toxicwind/rig](https://github.com/toxicwind/rig).
 >
 > Binary, crate, config-path and env-var names still say `openfang` for ecosystem compatibility; the full product rename is tracked separately.
-
-> **Pre-1.0 notice**
 >
-> OpenFang is feature complete but still pre-1.0. Expect rough edges and breaking changes between minor versions. We ship fast and fix fast. Pin to a specific commit for production use until v1.0. [Report issues here.](https://github.com/toxicwind/rig/issues)
+> **Pre-1.0 notice:** Rig is feature-complete but pre-1.0. Expect rough edges and breaking changes between minor versions. We ship fast and fix fast. Pin to a specific commit for production use until v1.0.
 
-## Why should you care?
+<details>
+<summary><strong>Table of Contents</strong></summary>
+<ol>
+  <li><a href="#why-rig">Why Rig?</a></li>
+  <li><a href="#built-with">Built With</a></li>
+  <li><a href="#quickstart">Quickstart</a></li>
+  <li><a href="#usage">Usage</a></li>
+  <li><a href="#features">Features</a></li>
+  <li><a href="#architecture">Architecture</a></li>
+  <li><a href="#hands-agents-that-actually-do-things">Hands</a></li>
+  <li><a href="#rig-vs-the-landscape">Rig vs the landscape</a></li>
+  <li><a href="#security">Security</a></li>
+  <li><a href="#roadmap">Roadmap</a></li>
+  <li><a href="#configuration">Configuration</a></li>
+  <li><a href="#dev--contributing">Dev &amp; Contributing</a></li>
+  <li><a href="#license">License</a></li>
+  <li><a href="#contact">Contact</a></li>
+</ol>
+</details>
 
-OpenFang is an **open-source Agent Operating System** — not a chatbot framework, not a Python wrapper around an LLM, not a "multi-agent orchestrator." A full OS for autonomous agents, built from scratch in Rust: **160K+ lines, 14 workspace crates, 2,696+ tests, zero clippy warnings (CI-enforced)**.
+## Why Rig?
 
-Traditional agent frameworks wait for you to type something. OpenFang runs **autonomous agents that work for you**: on schedules, 24/7 — building knowledge graphs, monitoring targets, generating leads, managing social media, reporting to your dashboard. The entire system compiles to a **single binary**. One install, one command, your agents are live.
+Traditional agent frameworks wait for you to type something. Rig runs **autonomous agents that work for you**: on schedules, 24/7 — building knowledge graphs, monitoring targets, generating leads, managing social media, reporting to your dashboard. Not a chatbot framework, not a Python wrapper around an LLM. A full runtime for autonomous agents, built from scratch in Rust: **160K+ lines, 14 workspace crates, 2,696+ tests, zero clippy warnings (CI-enforced)**. The entire system compiles to a **single binary**. One install, one command, your agents are live.
 
-**License:** [Apache-2.0 OR MIT](LICENSE-APACHE) · **Security:** [16 security systems](#16-security-systems-defense-in-depth), [SECURITY.md](SECURITY.md)
+## Built With
 
-<p align="center">
-  <a href="https://openfang.sh/docs">Documentation</a> &bull;
-  <a href="https://openfang.sh/docs/getting-started">Quick Start</a> &bull;
-  <a href="https://x.com/openfangg">Twitter / X</a>
-</p>
+- [Rust](https://www.rust-lang.org) — the whole runtime, 14 workspace crates
+- [Tokio](https://tokio.rs) — async kernel, scheduler, 140+ REST/WS/SSE endpoints
+- [SQLite](https://www.sqlite.org) (+ vectors) — persistent agent memory
+- [Tauri 2.0](https://tauri.app) — native desktop app
+- [WebAssembly](https://webassembly.org) — dual-metered tool sandbox
+
+## Quickstart
+
+Copy-paste to your first running agent in under 30 seconds:
+
+```bash
+curl -fsSL https://openfang.sh/install | sh
+openfang init     # walks you through provider setup
+openfang start    # kernel daemon live — API on 127.0.0.1:25196
+openfang agent list   # see your agents
+```
+
+Then talk to one:
+
+```bash
+openfang chat assistant        # quick chat with the default agent
+openfang agent new coder       # spawn a pre-built coder agent
+openfang hand activate researcher  # it starts working for you on a schedule
+```
+
+<details>
+<summary><strong>Windows (PowerShell)</strong></summary>
+
+```powershell
+irm https://openfang.sh/install.ps1 | iex
+openfang init
+openfang start
+```
+
+</details>
+
+## Usage
+
+The three things you'll do most, with real output:
+
+**1. List agents**
+```bash
+$ openfang agent list
+ID        NAME       PERSONA      STATE     MODEL
+2a1e316e  burro      🫏 Burro     Running   toolcall-local/qwen3.5-9b-tool
+06aff851  weaver     🕷 Weaver    Running   openrouter-free/nvidia/nemotron-3-…
+```
+
+**2. Chat with an agent**
+```bash
+$ openfang chat burro "summarize last night's fleet log"
+```
+
+**3. Run a workflow**
+```bash
+$ openfang workflow run nightly-research
+```
+
+More: [CLI reference](docs/cli-reference.md) · [API reference](docs/api-reference.md) · [examples/](examples/)
 
 ## Features
 
@@ -84,34 +159,11 @@ openfang-migrate     OpenClaw, LangChain, AutoGPT migration engine
 xtask                Build automation
 ```
 
-## Quick start
-
-```bash
-curl -fsSL https://openfang.sh/install | sh
-openfang init     # walks you through provider setup
-openfang start    # dashboard live at http://localhost:4200
-```
-
-Then: `openfang hand activate researcher` — it starts working for you.
-`openfang chat researcher` to talk to an agent. `openfang agent spawn coder`
-for a pre-built agent.
-
-<details>
-<summary><strong>Windows (PowerShell)</strong></summary>
-
-```powershell
-irm https://openfang.sh/install.ps1 | iex
-openfang init
-openfang start
-```
-
-</details>
-
 ## Hands: agents that actually do things
 
 <p align="center"><em>"Traditional agents wait for you to type. Hands work <strong>for</strong> you."</em></p>
 
-**Hands** are OpenFang's core innovation. Pre-built autonomous capability packages that run independently, on schedules, without you having to prompt them. A Hand wakes up at 6 AM, researches your competitors, builds a knowledge graph, scores the findings, and delivers a report to your Telegram before you've had coffee.
+**Hands** are Rig's core innovation. Pre-built autonomous capability packages that run independently, on schedules, without you having to prompt them. A Hand wakes up at 6 AM, researches your competitors, builds a knowledge graph, scores the findings, and delivers a report to your Telegram before you've had coffee.
 
 Each Hand bundles:
 
@@ -122,40 +174,44 @@ Each Hand bundles:
 
 All compiled into the binary. No downloading, no pip install, no Docker pull.
 
-## OpenFang vs the landscape
-
-<p align="center">
-  <img src="public/assets/openfang-vs-claws.png" width="600" alt="OpenFang vs OpenClaw vs ZeroClaw" />
-</p>
+## Rig vs the landscape
 
 Benchmarks: measured, not marketed (official docs and public repos, February 2026):
 
-| Metric (lower is better) | OpenFang | OpenClaw | LangGraph | CrewAI |
+| Metric (lower is better) | Rig | OpenClaw | LangGraph | CrewAI |
 |---|---|---|---|---|
 | Cold start | **180 ms** ★ | 5.98 sec | 2.5 sec | 3.0 sec |
 | Idle memory | **40 MB** ★ | 394 MB | 180 MB | 200 MB |
 | Install size | **32 MB** ★ | — | 150 MB | 100 MB |
 
-## 16 security systems: defense in depth
+## Security
+
+16 systems, defense in depth. Highlights:
 
 | # | System | What it does |
 |---|---|---|
-| 1 | **WASM Dual-Metered Sandbox** | Tool code runs in WebAssembly with fuel metering + epoch interruption; a watchdog thread kills runaway code |
-| 2 | **Merkle Hash-Chain Audit Trail** | Every action cryptographically linked to the previous one — tamper with one entry and the chain breaks |
-| 3 | **Information Flow Taint Tracking** | Labels propagate through execution; secrets tracked from source to sink |
-| 4 | **Ed25519 Signed Agent Manifests** | Every agent identity and capability set cryptographically signed |
-| 5 | **SSRF Protection** | Blocks private IPs, cloud metadata endpoints, DNS rebinding attacks |
-| 6 | **Secret Zeroization** | `Zeroizing<String>` auto-wipes API keys from memory the instant they're no longer needed |
-| 7 | **OFP Mutual Authentication** | HMAC-SHA256 nonce-based, constant-time verification for P2P |
-| 8 | **Capability Gates** | Role-based access control; agents declare required tools, the kernel enforces it |
-| 9 | **Security Headers** | CSP, X-Frame-Options, HSTS, X-Content-Type-Options on every response |
-| 10 | **Health Endpoint Redaction** | Public health check returns minimal info; full diagnostics require auth |
-| 11 | **Subprocess Sandbox** | `env_clear()` + selective passthrough; process-tree isolation with cross-platform kill |
-| 12 | **Prompt Injection Scanner** | Detects override attempts, data exfiltration patterns, shell reference injection in skills |
-| 13 | **Loop Guard** | SHA256-based tool-call loop detection with circuit breaker |
-| 14 | **Session Repair** | 7-phase message history validation and automatic recovery from corruption |
-| 15 | **Path Traversal Prevention** | Canonicalization with symlink escape prevention — `../` doesn't work here |
-| 16 | **GCRA Rate Limiter** | Cost-aware token bucket rate limiting with per-IP tracking and stale cleanup |
+| 1 | **WASM Dual-Metered Sandbox** | Tool code runs in WebAssembly with fuel metering + epoch interruption |
+| 2 | **Merkle Hash-Chain Audit Trail** | Every action cryptographically linked — tamper-evident |
+| 3 | **Taint Tracking** | Secrets tracked from source to sink through execution |
+| 4 | **Ed25519 Signed Manifests** | Every agent identity and capability set cryptographically signed |
+| 5 | **SSRF Protection** | Blocks private IPs, cloud metadata endpoints, DNS rebinding |
+| 12 | **Prompt Injection Scanner** | Detects override attempts and exfiltration patterns in skills |
+
+Full list: [SECURITY.md](SECURITY.md).
+
+## Roadmap
+
+- [x] Single-binary agent runtime (14 Rust crates, 2,696+ tests)
+- [x] 40 channel adapters + 60 bundled skills + 9 autonomous Hands
+- [x] 140+ REST/WS/SSE endpoints, OpenAI-compatible API
+- [x] 16 security systems (WASM sandbox, Merkle audit trail, taint tracking)
+- [x] Desktop app (Tauri 2.0), TUI dashboard, MCP server mode
+- [ ] v1.0 API stability commitment
+- [ ] Full product rename (`rig` binary/crate names; tracked separately)
+- [ ] Hosted FangHub skill marketplace
+- [ ] Multi-node P2P mesh (OFP) beyond single-host
+
+Have a feature in mind? [Request it here.](https://github.com/toxicwind/rig/issues/new?labels=enhancement&template=feature-request.md)
 
 ## Configuration
 
@@ -163,7 +219,7 @@ Benchmarks: measured, not marketed (official docs and public repos, February 202
 crate, config-path and env-var names still say `openfang` for ecosystem
 compatibility. The WhatsApp Web gateway pairs via QR code.
 
-## Dev & contributing
+## Dev & Contributing
 
 ```bash
 cargo build --workspace --lib                    # build the workspace
@@ -172,15 +228,26 @@ cargo clippy --workspace --all-targets -- -D warnings   # lint (must be 0 warnin
 cargo fmt --all -- --check                       # format
 ```
 
-See [CONTRIBUTING.md](CONTRIBUTING.md), [MIGRATION.md](MIGRATION.md), and
-[docs/](docs/) for more. Rust 1.75+, edition 2021. `test_vertex_e2e.py` covers
-end-to-end vertex flows.
+See [CONTRIBUTING.md](CONTRIBUTING.md) and [docs/](docs/) for more. Rust 1.75+, edition 2021.
 
-## License & security
+## License
 
 Dual-licensed [Apache-2.0](LICENSE-APACHE) OR [MIT](LICENSE-MIT). Security
 policy: [SECURITY.md](SECURITY.md). Pre-1.0: pin to a specific commit for
 production use.
 
-Built by [RightNow](https://github.com/RightNow-AI/openfang) upstream; this
-fork lives at [toxicwind/rig](https://github.com/toxicwind/rig).
+## Contact
+
+Maintainer: [toxicwind](https://github.com/toxicwind) — issues and discussions
+live at [toxicwind/rig](https://github.com/toxicwind/rig). Upstream OpenFang:
+[RightNow-AI/openfang](https://github.com/RightNow-AI/openfang).
+
+## Acknowledgments
+
+Built on the shoulders of [OpenFang](https://github.com/RightNow-AI/openfang)
+by RightNow — this fork carries its architecture forward. Thanks to every
+contributor upstream and here.
+
+---
+
+⭐ Don't forget to give the project a star! Thanks again!
