@@ -809,6 +809,17 @@ impl LlmDriver for OpenAIDriver {
                 .text()
                 .await
                 .map_err(|e| LlmError::Http(e.to_string()))?;
+            // HTTP 200 with an error envelope: some routers (the llama-swap
+            // herd) return 200 OK with an OpenRouter-style
+            // {"error": {"message": ..., "code": 502, ...}} body when the
+            // upstream provider fails, instead of propagating the 5xx status.
+            // Catch it here -- the strict OaiResponse parse below would turn
+            // it into a misleading "missing field `choices`" error.
+            if let Ok(value) = serde_json::from_str::<serde_json::Value>(&body) {
+                if let Some(err) = http200_error_envelope(&value) {
+                    return Err(err);
+                }
+            }
             let oai_response: OaiResponse =
                 serde_json::from_str(&body).map_err(|e| LlmError::Parse(e.to_string()))?;
 
@@ -1628,6 +1639,55 @@ fn extract_max_tokens_limit(body: &str) -> Option<u32> {
     None
 }
 
+/// Map an OpenRouter-style error envelope delivered inside an HTTP 200 body
+/// to an `LlmError`.
+///
+/// Returns `None` when `body` is not an error envelope (i.e. it carries
+/// `choices`, or has no `error` object).
+fn http200_error_envelope(body: &serde_json::Value) -> Option<LlmError> {
+    // A real completion always carries `choices`; an envelope never does.
+    if body.get("choices").is_some() {
+        return None;
+    }
+    let err = body.get("error")?;
+    let message = err
+        .get("message")
+        .and_then(|m| m.as_str())
+        .unwrap_or("unknown provider error")
+        .to_string();
+    let code = err.get("code").and_then(|c| c.as_u64()).unwrap_or(0);
+    let error_type = err
+        .get("metadata")
+        .and_then(|m| m.get("error_type"))
+        .and_then(|t| t.as_str())
+        .unwrap_or("");
+    let lower = message.to_lowercase();
+    // Upstream provider saturated / unavailable: retryable. The agent loop
+    // retries `Overloaded` with exponential backoff.
+    let unavailable = code == 500
+        || code == 502
+        || code == 503
+        || error_type == "provider_unavailable"
+        || lower.contains("resourceexhausted")
+        || lower.contains("overloaded")
+        || lower.contains("service unavailable")
+        || lower.contains("capacity");
+    if unavailable {
+        return Some(LlmError::Overloaded {
+            retry_after_ms: 5000,
+        });
+    }
+    match code {
+        429 => Some(LlmError::RateLimited { retry_after_ms: 5000 }),
+        401 => Some(LlmError::AuthenticationFailed(message)),
+        404 => Some(LlmError::ModelNotFound(message)),
+        _ => Some(LlmError::Api {
+            status: u16::try_from(code).unwrap_or(502),
+            message,
+        }),
+    }
+}
+
 ///
 /// Some models (e.g. Llama 3.3) generate tool calls as XML: `<function=NAME ARGS></function>`
 /// instead of the proper JSON format. Groq rejects these with `tool_use_failed` but includes
@@ -2339,4 +2399,63 @@ mod tests {
         );
     }
 
+
+    #[test]
+    fn test_http200_envelope_nvidia_saturated_maps_overloaded() {
+        // Exact shape the llama-swap herd returned 2026-09-30 when the
+        // Nvidia free-tier workers were saturated (HTTP 200, 222 bytes,
+        // no `choices` field).
+        let body = serde_json::json!({
+            "id": "gen-1790815699-BBVyQaccsVW1qn4DFDaQ",
+            "error": {
+                "message": "Upstream error from Nvidia: ResourceExhausted: Worker local total request limit reached (16/16)",
+                "code": 502,
+                "metadata": { "error_type": "provider_unavailable" }
+            }
+        });
+        match http200_error_envelope(&body) {
+            Some(LlmError::Overloaded { retry_after_ms }) => {
+                assert!(retry_after_ms > 0)
+            }
+            other => panic!("expected Overloaded, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_http200_envelope_ignores_real_completion() {
+        let body = serde_json::json!({
+            "id": "chatcmpl-1",
+            "choices": [{"index": 0, "message": {"role": "assistant", "content": "pong"}, "finish_reason": "stop"}]
+        });
+        assert!(http200_error_envelope(&body).is_none());
+    }
+
+    #[test]
+    fn test_http200_envelope_no_error_field_is_none() {
+        let body = serde_json::json!({"id": "x", "object": "chat.completion"});
+        assert!(http200_error_envelope(&body).is_none());
+    }
+
+    #[test]
+    fn test_http200_envelope_429_maps_rate_limited() {
+        let body = serde_json::json!({
+            "error": {"message": "Rate limit exceeded", "code": 429}
+        });
+        match http200_error_envelope(&body) {
+            Some(LlmError::RateLimited { .. }) => {}
+            other => panic!("expected RateLimited, got {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_http200_envelope_401_maps_auth() {
+        let body = serde_json::json!({
+            "error": {"message": "Invalid API key", "code": 401}
+        });
+        match http200_error_envelope(&body) {
+            Some(LlmError::AuthenticationFailed(_)) => {}
+            other => panic!("expected AuthenticationFailed, got {:?}", other),
+        }
+    }
 }
+
