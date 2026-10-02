@@ -16,11 +16,11 @@ for display, so existing agents keep working unchanged.
 
 ## Where the persona surfaces
 
-- **Launch banners** — `openfang agent spawn` / `openfang agent new` print the
+- **Launch banners** — `rig agent spawn` / `rig agent new` print the
   persona display string (e.g. `🕸️ Loom spawned successfully!`).
 - **Log lines** — kernel `Spawning agent` / `Agent spawned` events carry a
   `persona` structured field.
-- **Status surfaces** — `openfang agent list` has a `PERSONA` column; the TUI
+- **Status surfaces** — `rig agent list` has a `PERSONA` column; the TUI
   agents screen lists and details agents by persona; `GET /api/agents`
   exposes `persona` and `persona_role`.
 - **Identity files** — the generated `IDENTITY.md` frontmatter is seeded from
@@ -41,7 +41,7 @@ for display, so existing agents keep working unchanged.
 
 ## In code
 
-- `openfang_types::agent::AgentPersona` — the type (`crates/openfang-types`).
+- `rig_types::agent::AgentPersona` — the type (`crates/rig-types`).
 - `AgentManifest.persona` — parsed from `[persona]` in `agent.toml`.
 - `AgentPersona::display(&fallback)` — `"🕸️ Loom"` / `"Loom"` / fallback name.
 - `AgentPersona::to_identity()` — folds sigil/role into `AgentIdentity`

@@ -33,11 +33,11 @@
           perl
           pkg-config
         ];
-        rust-project.crates.openfang-desktop.crane.args.nativeBuildInputs = with pkgs; [
+        rust-project.crates.rig-desktop.crane.args.nativeBuildInputs = with pkgs; [
           pkg-config
           wrapGAppsHook3
         ];
-        rust-project.crates.openfang-desktop.crane.args.buildInputs = with pkgs; [
+        rust-project.crates.rig-desktop.crane.args.buildInputs = with pkgs; [
           atk
           glib
           gtk3
@@ -46,23 +46,23 @@
           pkg-config
           webkitgtk_4_1
         ];
-        rust-project.crates.openfang-desktop.crane.args.preFixup = ''
+        rust-project.crates.rig-desktop.crane.args.preFixup = ''
           gappsWrapperArgs+=(
             --prefix LD_LIBRARY_PATH : "${pkgs.libayatana-appindicator}/lib"
           )
         '';
 
-        packages.default = self'.packages.openfang-cli;
+        packages.default = self'.packages.rig-cli;
         apps = {
-          openfang-cli = {
-            program = "${self'.packages.openfang-cli}/bin/openfang";
+          rig-cli = {
+            program = "${self'.packages.rig-cli}/bin/rig";
             meta.description = "CLI tool for the OpenFang Agent OS";
           };
-          openfang-desktop = {
-            program = "${self'.packages.openfang-desktop}/bin/openfang-desktop";
+          rig-desktop = {
+            program = "${self'.packages.rig-desktop}/bin/rig-desktop";
             meta.description = "Native desktop application for the OpenFang Agent OS (Tauri 2.0)";
           };
-          default = self'.apps.openfang-cli;
+          default = self'.apps.rig-cli;
         };
       };
       flake = {

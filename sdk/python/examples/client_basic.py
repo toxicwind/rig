@@ -10,7 +10,7 @@ import sys
 import os
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-from openfang_client import OpenFang
+from rig_client import OpenFang
 
 client = OpenFang("http://localhost:3000")
 

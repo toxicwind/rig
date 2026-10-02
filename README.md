@@ -5,7 +5,7 @@
 [![tests](https://img.shields.io/badge/tests-2696%2B_passing-brightgreen)](#dev--contributing)
 
 <p align="center">
-  <img src="public/assets/openfang-logo.png" width="160" alt="Rig Logo" />
+  <img src="public/assets/rig-logo.png" width="160" alt="Rig Logo" />
 </p>
 
 <h1 align="center">Rig</h1>
@@ -20,9 +20,9 @@
 
 ![Rig terminal demo](docs/demo-terminal.svg)
 
-> **Rig** is Chris's fork of OpenFang ([upstream](https://github.com/RightNow-AI/openfang)). Fork home: [toxicwind/rig](https://github.com/toxicwind/rig).
+> **Rig** is Chris's fork of OpenFang ([upstream](https://github.com/RightNow-AI/rig)). Fork home: [toxicwind/rig](https://github.com/toxicwind/rig).
 >
-> Binary, crate, config-path and env-var names still say `openfang` for ecosystem compatibility; the full product rename is tracked separately.
+> Binary, crate, config-path and env-var names still say `rig` for ecosystem compatibility; the full product rename is tracked separately.
 >
 > **Pre-1.0 notice:** Rig is feature-complete but pre-1.0. Expect rough edges and breaking changes between minor versions. We ship fast and fix fast. Pin to a specific commit for production use until v1.0.
 
@@ -63,27 +63,27 @@ Traditional agent frameworks wait for you to type something. Rig runs **autonomo
 Copy-paste to your first running agent in under 30 seconds:
 
 ```bash
-curl -fsSL https://openfang.sh/install | sh
-openfang init     # walks you through provider setup
-openfang start    # kernel daemon live — API on 127.0.0.1:25196
-openfang agent list   # see your agents
+curl -fsSL https://rig.sh/install | sh
+rig init     # walks you through provider setup
+rig start    # kernel daemon live — API on 127.0.0.1:25196
+rig agent list   # see your agents
 ```
 
 Then talk to one:
 
 ```bash
-openfang chat assistant        # quick chat with the default agent
-openfang agent new coder       # spawn a pre-built coder agent
-openfang hand activate researcher  # it starts working for you on a schedule
+rig chat assistant        # quick chat with the default agent
+rig agent new coder       # spawn a pre-built coder agent
+rig hand activate researcher  # it starts working for you on a schedule
 ```
 
 <details>
 <summary><strong>Windows (PowerShell)</strong></summary>
 
 ```powershell
-irm https://openfang.sh/install.ps1 | iex
-openfang init
-openfang start
+irm https://rig.sh/install.ps1 | iex
+rig init
+rig start
 ```
 
 </details>
@@ -94,7 +94,7 @@ The three things you'll do most, with real output:
 
 **1. List agents**
 ```bash
-$ openfang agent list
+$ rig agent list
 ID        NAME       PERSONA      STATE     MODEL
 2a1e316e  burro      🫏 Burro     Running   toolcall-local/qwen3.5-9b-tool
 06aff851  weaver     🕷 Weaver    Running   openrouter-free/nvidia/nemotron-3-…
@@ -102,12 +102,12 @@ ID        NAME       PERSONA      STATE     MODEL
 
 **2. Chat with an agent**
 ```bash
-$ openfang chat burro "summarize last night's fleet log"
+$ rig chat burro "summarize last night's fleet log"
 ```
 
 **3. Run a workflow**
 ```bash
-$ openfang workflow run nightly-research
+$ rig workflow run nightly-research
 ```
 
 More: [CLI reference](docs/cli-reference.md) · [API reference](docs/api-reference.md) · [examples/](examples/)
@@ -128,34 +128,34 @@ More: [CLI reference](docs/cli-reference.md) · [API reference](docs/api-referen
 
 ```mermaid
 flowchart TB
-    B[openfang binary] --> K[openfang-kernel<br/>orchestration · workflows · scheduler · RBAC]
-    K --> R[openfang-runtime<br/>agent loop · 3 LLM drivers · 53 tools · WASM sandbox · MCP · A2A]
-    R --> H[openfang-hands<br/>9 autonomous Hands]
-    R --> M[openfang-memory<br/>SQLite · vectors · sessions]
-    R --> S[openfang-skills<br/>60 bundled skills · FangHub]
-    K --> API[openfang-api<br/>140+ endpoints · OpenAI-compatible]
-    K --> CH[openfang-channels<br/>40 adapters]
-    K --> W[openfang-wire<br/>OFP P2P · HMAC-SHA256]
-    B --> CLI[openfang-cli<br/>daemon mgmt · TUI · MCP mode]
-    B --> D[openfang-desktop<br/>Tauri 2.0 app]
+    B[rig binary] --> K[rig-kernel<br/>orchestration · workflows · scheduler · RBAC]
+    K --> R[rig-runtime<br/>agent loop · 3 LLM drivers · 53 tools · WASM sandbox · MCP · A2A]
+    R --> H[rig-hands<br/>9 autonomous Hands]
+    R --> M[rig-memory<br/>SQLite · vectors · sessions]
+    R --> S[rig-skills<br/>60 bundled skills · FangHub]
+    K --> API[rig-api<br/>140+ endpoints · OpenAI-compatible]
+    K --> CH[rig-channels<br/>40 adapters]
+    K --> W[rig-wire<br/>OFP P2P · HMAC-SHA256]
+    B --> CLI[rig-cli<br/>daemon mgmt · TUI · MCP mode]
+    B --> D[rig-desktop<br/>Tauri 2.0 app]
 ```
 
 14 Rust crates. 160K+ lines of Rust. Modular kernel design.
 
 ```
-openfang-kernel      Orchestration, workflows, metering, RBAC, scheduler, budget tracking
-openfang-runtime     Agent loop, 3 LLM drivers, 53 tools, WASM sandbox, MCP, A2A
-openfang-api         140+ REST/WS/SSE endpoints, OpenAI-compatible API, dashboard
-openfang-channels    40 messaging adapters with rate limiting, DM/group policies
-openfang-memory      SQLite persistence, vector embeddings, canonical sessions, compaction
-openfang-types       Core types, taint tracking, Ed25519 manifest signing, model catalog
-openfang-skills      60 bundled skills, SKILL.md parser, FangHub marketplace
-openfang-hands       9 autonomous Hands, HAND.toml parser, lifecycle management
-openfang-extensions  25 MCP templates, AES-256-GCM credential vault, OAuth2 PKCE
-openfang-wire        OFP P2P protocol with HMAC-SHA256 mutual authentication
-openfang-cli         CLI with daemon management, TUI dashboard, MCP server mode
-openfang-desktop     Tauri 2.0 native app (system tray, notifications, global shortcuts)
-openfang-migrate     OpenClaw, LangChain, AutoGPT migration engine
+rig-kernel      Orchestration, workflows, metering, RBAC, scheduler, budget tracking
+rig-runtime     Agent loop, 3 LLM drivers, 53 tools, WASM sandbox, MCP, A2A
+rig-api         140+ REST/WS/SSE endpoints, OpenAI-compatible API, dashboard
+rig-channels    40 messaging adapters with rate limiting, DM/group policies
+rig-memory      SQLite persistence, vector embeddings, canonical sessions, compaction
+rig-types       Core types, taint tracking, Ed25519 manifest signing, model catalog
+rig-skills      60 bundled skills, SKILL.md parser, FangHub marketplace
+rig-hands       9 autonomous Hands, HAND.toml parser, lifecycle management
+rig-extensions  25 MCP templates, AES-256-GCM credential vault, OAuth2 PKCE
+rig-wire        OFP P2P protocol with HMAC-SHA256 mutual authentication
+rig-cli         CLI with daemon management, TUI dashboard, MCP server mode
+rig-desktop     Tauri 2.0 native app (system tray, notifications, global shortcuts)
+rig-migrate     OpenClaw, LangChain, AutoGPT migration engine
 xtask                Build automation
 ```
 
@@ -215,8 +215,8 @@ Have a feature in mind? [Request it here.](https://github.com/toxicwind/rig/issu
 
 ## Configuration
 
-`openfang.toml.example` at the repo root documents the config surface. Binary,
-crate, config-path and env-var names still say `openfang` for ecosystem
+`rig.toml.example` at the repo root documents the config surface. Binary,
+crate, config-path and env-var names still say `rig` for ecosystem
 compatibility. The WhatsApp Web gateway pairs via QR code.
 
 ## Dev & Contributing
@@ -240,11 +240,11 @@ production use.
 
 Maintainer: [toxicwind](https://github.com/toxicwind) — issues and discussions
 live at [toxicwind/rig](https://github.com/toxicwind/rig). Upstream OpenFang:
-[RightNow-AI/openfang](https://github.com/RightNow-AI/openfang).
+[RightNow-AI/rig](https://github.com/RightNow-AI/rig).
 
 ## Acknowledgments
 
-Built on the shoulders of [OpenFang](https://github.com/RightNow-AI/openfang)
+Built on the shoulders of [OpenFang](https://github.com/RightNow-AI/rig)
 by RightNow — this fork carries its architecture forward. Thanks to every
 contributor upstream and here.
 

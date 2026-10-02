@@ -44,7 +44,7 @@ If any of these fail, the PR isn't ready.
 
 ## Naming note
 
-Binary, crate, config-path and env-var names still say `openfang` for ecosystem
+Binary, crate, config-path and env-var names still say `rig` for ecosystem
 compatibility. Don't rename them in passing — the full rename is tracked separately.
 
 Questions? Open an issue — fastest response there.

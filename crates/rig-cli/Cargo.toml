@@ -1,0 +1,34 @@
+[package]
+name = "rig-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "CLI tool for the OpenFang Agent OS"
+
+[[bin]]
+name = "rig"
+path = "src/main.rs"
+
+[dependencies]
+rig-types = { path = "../rig-types" }
+rig-kernel = { path = "../rig-kernel" }
+rig-api = { path = "../rig-api" }
+rig-migrate = { path = "../rig-migrate" }
+rig-skills = { path = "../rig-skills" }
+rig-extensions = { path = "../rig-extensions" }
+zeroize = { workspace = true }
+tokio = { workspace = true }
+clap = { workspace = true }
+clap_complete = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+toml = { workspace = true }
+dirs = { workspace = true }
+reqwest = { workspace = true, features = ["blocking"] }
+rig-runtime = { path = "../rig-runtime" }
+uuid = { workspace = true }
+ratatui = { workspace = true }
+colored = { workspace = true }
+tempfile = { workspace = true }

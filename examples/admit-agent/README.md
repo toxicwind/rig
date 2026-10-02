@@ -1,7 +1,7 @@
 # Admit an agent via the REST API
 
 The fastest way to put an agent to work programmatically. Tested against a live
-Rig kernel (`openfang start`, API on `127.0.0.1:25196`).
+Rig kernel (`rig start`, API on `127.0.0.1:25196`).
 
 ## Admit
 

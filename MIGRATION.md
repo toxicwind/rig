@@ -19,32 +19,32 @@ This guide covers migrating from OpenClaw (and other frameworks) to OpenFang. Th
 Run a single command to migrate your entire OpenClaw workspace:
 
 ```bash
-openfang migrate --from openclaw
+rig migrate --from openclaw
 ```
 
-This auto-detects your OpenClaw workspace at `~/.openclaw/` and imports everything into `~/.openfang/`.
+This auto-detects your OpenClaw workspace at `~/.openclaw/` and imports everything into `~/.rig/`.
 
 ### Options
 
 ```bash
 # Specify a custom source directory
-openfang migrate --from openclaw --source-dir /path/to/openclaw/workspace
+rig migrate --from openclaw --source-dir /path/to/openclaw/workspace
 
 # Dry run -- see what would be imported without making changes
-openfang migrate --from openclaw --dry-run
+rig migrate --from openclaw --dry-run
 ```
 
 ### Migration Report
 
-After a successful migration, a `migration_report.md` file is saved to `~/.openfang/` with a summary of everything that was imported, skipped, or needs manual attention.
+After a successful migration, a `migration_report.md` file is saved to `~/.rig/` with a summary of everything that was imported, skipped, or needs manual attention.
 
 ### Other Frameworks
 
 LangChain and AutoGPT migration support is planned:
 
 ```bash
-openfang migrate --from langchain   # Coming soon
-openfang migrate --from autogpt     # Coming soon
+rig migrate --from langchain   # Coming soon
+rig migrate --from autogpt     # Coming soon
 ```
 
 ---
@@ -53,24 +53,24 @@ openfang migrate --from autogpt     # Coming soon
 
 | Item | Source (OpenClaw) | Destination (OpenFang) | Status |
 |------|-------------------|------------------------|--------|
-| **Config** | `~/.openclaw/config.yaml` | `~/.openfang/config.toml` | Fully automated |
-| **Agents** | `~/.openclaw/agents/*/agent.yaml` | `~/.openfang/agents/*/agent.toml` | Fully automated |
-| **Memory** | `~/.openclaw/agents/*/MEMORY.md` | `~/.openfang/agents/*/imported_memory.md` | Fully automated |
-| **Channels** | `~/.openclaw/messaging/*.yaml` | `~/.openfang/channels_import.toml` | Automated (manual merge) |
+| **Config** | `~/.openclaw/config.yaml` | `~/.rig/config.toml` | Fully automated |
+| **Agents** | `~/.openclaw/agents/*/agent.yaml` | `~/.rig/agents/*/agent.toml` | Fully automated |
+| **Memory** | `~/.openclaw/agents/*/MEMORY.md` | `~/.rig/agents/*/imported_memory.md` | Fully automated |
+| **Channels** | `~/.openclaw/messaging/*.yaml` | `~/.rig/channels_import.toml` | Automated (manual merge) |
 | **Skills** | `~/.openclaw/skills/` | Scanned and reported | Manual reinstall |
 | **Sessions** | `~/.openclaw/agents/*/sessions/` | Not migrated | Fresh start recommended |
 | **Workspace files** | `~/.openclaw/agents/*/workspace/` | Not migrated | Copy manually if needed |
 
 ### Channel Import Note
 
-Channel configurations (Telegram, Discord, Slack) are exported to a `channels_import.toml` file. You must manually merge the `[channels]` section into your `~/.openfang/config.toml`.
+Channel configurations (Telegram, Discord, Slack) are exported to a `channels_import.toml` file. You must manually merge the `[channels]` section into your `~/.rig/config.toml`.
 
 ### Skills Note
 
 OpenClaw skills (Node.js) are detected and listed in the migration report but not automatically converted. After migration, reinstall skills using:
 
 ```bash
-openfang skill install <skill-name-or-path>
+rig skill install <skill-name-or-path>
 ```
 
 OpenFang automatically detects OpenClaw-format skills and converts them during installation.
@@ -84,10 +84,10 @@ If you prefer migrating by hand (or need to handle edge cases), follow these ste
 ### 1. Initialize OpenFang
 
 ```bash
-openfang init
+rig init
 ```
 
-This creates `~/.openfang/` with a default `config.toml`.
+This creates `~/.rig/` with a default `config.toml`.
 
 ### 2. Convert Your Config
 
@@ -103,7 +103,7 @@ memory:
   decay_rate: 0.05
 ```
 
-**OpenFang** (`~/.openfang/config.toml`):
+**OpenFang** (`~/.rig/config.toml`):
 ```toml
 [default_model]
 provider = "anthropic"
@@ -136,12 +136,12 @@ tags:
   - dev
 ```
 
-**OpenFang** (`~/.openfang/agents/coder/agent.toml`):
+**OpenFang** (`~/.rig/agents/coder/agent.toml`):
 ```toml
 name = "coder"
 version = "0.1.0"
 description = "A coding assistant"
-author = "openfang"
+author = "rig"
 module = "builtin:chat"
 tags = ["coding", "dev"]
 
@@ -166,7 +166,7 @@ allowed_users:
   - "123456789"
 ```
 
-**OpenFang** (add to `~/.openfang/config.toml`):
+**OpenFang** (add to `~/.rig/config.toml`):
 ```toml
 [channels.telegram]
 bot_token_env = "TELEGRAM_BOT_TOKEN"
@@ -179,7 +179,7 @@ allowed_users = ["123456789"]
 Copy any `MEMORY.md` files from OpenClaw agents to OpenFang agent directories:
 
 ```bash
-cp ~/.openclaw/agents/coder/MEMORY.md ~/.openfang/agents/coder/imported_memory.md
+cp ~/.openclaw/agents/coder/MEMORY.md ~/.rig/agents/coder/imported_memory.md
 ```
 
 The kernel will ingest these on first boot.
@@ -191,7 +191,7 @@ The kernel will ingest these on first boot.
 | Aspect | OpenClaw | OpenFang |
 |--------|----------|----------|
 | Format | YAML | TOML |
-| Config location | `~/.openclaw/config.yaml` | `~/.openfang/config.toml` |
+| Config location | `~/.openclaw/config.yaml` | `~/.rig/config.toml` |
 | Agent definition | `agent.yaml` | `agent.toml` |
 | Channel config | Separate files per channel | Unified in `config.toml` |
 | Tool permissions | Implicit (tool list) | Capability-based (tools, memory, network, shell) |
@@ -324,7 +324,7 @@ OpenClaw's tool profiles map to explicit tool lists:
 The migration engine looks for `~/.openclaw/` by default. If your OpenClaw workspace is elsewhere:
 
 ```bash
-openfang migrate --from openclaw --source-dir /path/to/your/workspace
+rig migrate --from openclaw --source-dir /path/to/your/workspace
 ```
 
 ### Agent fails to spawn after migration
@@ -339,7 +339,7 @@ Check the converted `agent.toml` for:
 OpenClaw Node.js skills must be reinstalled:
 
 ```bash
-openfang skill install /path/to/openclaw/skills/my-skill
+rig skill install /path/to/openclaw/skills/my-skill
 ```
 
 The installer auto-detects OpenClaw format and converts the skill manifest.
@@ -349,12 +349,12 @@ The installer auto-detects OpenClaw format and converts the skill manifest.
 After migration, channels are exported to `channels_import.toml`. You must merge them into your `config.toml` manually:
 
 ```bash
-cat ~/.openfang/channels_import.toml
-# Copy the [channels.*] sections into ~/.openfang/config.toml
+cat ~/.rig/channels_import.toml
+# Copy the [channels.*] sections into ~/.rig/config.toml
 ```
 
 Then restart the daemon:
 
 ```bash
-openfang start
+rig start
 ```

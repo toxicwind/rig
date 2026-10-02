@@ -31,15 +31,15 @@ The desktop app includes the full OpenFang system with a native window, system t
 ### Option 2: Shell Installer (Linux / macOS)
 
 ```bash
-curl -sSf https://openfang.sh | sh
+curl -sSf https://rig.sh | sh
 ```
 
-This downloads the latest CLI binary and installs it to `~/.openfang/bin/`.
+This downloads the latest CLI binary and installs it to `~/.rig/bin/`.
 
 ### Option 3: PowerShell Installer (Windows)
 
 ```powershell
-irm https://openfang.sh/install.ps1 | iex
+irm https://rig.sh/install.ps1 | iex
 ```
 
 Downloads the latest CLI binary, verifies its SHA256 checksum, and adds it to your user PATH.
@@ -49,15 +49,15 @@ Downloads the latest CLI binary, verifies its SHA256 checksum, and adds it to yo
 Requires Rust 1.75+:
 
 ```bash
-cargo install --git https://github.com/toxicwind/rig openfang-cli
+cargo install --git https://github.com/toxicwind/rig rig-cli
 ```
 
 Or build from source:
 
 ```bash
 git clone https://github.com/toxicwind/rig.git
-cd openfang
-cargo install --path crates/openfang-cli
+cd rig
+cargo install --path crates/rig-cli
 ```
 
 ### Option 5: Docker
@@ -66,10 +66,10 @@ cargo install --path crates/openfang-cli
 docker pull ghcr.io/toxicwind/rig:latest
 
 docker run -d \
-  --name openfang \
+  --name rig \
   -p 4200:4200 \
   -e ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY \
-  -v openfang-data:/data \
+  -v rig-data:/data \
   ghcr.io/toxicwind/rig:latest
 ```
 
@@ -77,7 +77,7 @@ Or use Docker Compose:
 
 ```bash
 git clone https://github.com/toxicwind/rig.git
-cd openfang
+cd rig
 # Set your API keys in environment or .env file
 docker compose up -d
 ```
@@ -91,7 +91,7 @@ docker run -d \
   --add-host=host.docker.internal:host-gateway \
   -e OLLAMA_HOST=http://host.docker.internal:11434 \
   -p 4200:4200 \
-  ghcr.io/rightnow-ai/openfang:latest
+  ghcr.io/rightnow-ai/rig:latest
 ```
 
 For Compose, add `extra_hosts: ["host.docker.internal:host-gateway"]` to the
@@ -102,7 +102,7 @@ if you need in-container `curl` for healthchecks.
 ### Verify Installation
 
 ```bash
-openfang --version
+rig --version
 ```
 
 ---
@@ -111,16 +111,16 @@ openfang --version
 
 ### Initialize
 
-Run the init command to create the `~/.openfang/` directory and a default config file:
+Run the init command to create the `~/.rig/` directory and a default config file:
 
 ```bash
-openfang init
+rig init
 ```
 
 This creates:
 
 ```
-~/.openfang/
+~/.rig/
   config.toml    # Main configuration
   data/          # Database and runtime data
   agents/        # Agent manifests (optional)
@@ -145,7 +145,7 @@ Add the export to your shell profile (`~/.bashrc`, `~/.zshrc`, etc.) to persist 
 
 ### Edit the Config
 
-The default config uses Anthropic. To change the provider, edit `~/.openfang/config.toml`:
+The default config uses Anthropic. To change the provider, edit `~/.rig/config.toml`:
 
 ```toml
 [default_model]
@@ -163,7 +163,7 @@ listen_addr = "127.0.0.1:4200"        # OFP listen address
 ### Verify Your Setup
 
 ```bash
-openfang doctor
+rig doctor
 ```
 
 This checks that your config exists, API keys are set, and the toolchain is available.
@@ -177,7 +177,7 @@ This checks that your config exists, API keys are set, and the toolchain is avai
 OpenFang ships with 30 agent templates. Spawn the hello-world agent:
 
 ```bash
-openfang agent spawn agents/hello-world/agent.toml
+rig agent spawn agents/hello-world/agent.toml
 ```
 
 Output:
@@ -212,13 +212,13 @@ memory_write = ["self.*"]
 Then spawn it:
 
 ```bash
-openfang agent spawn my-agent.toml
+rig agent spawn my-agent.toml
 ```
 
 ### List Running Agents
 
 ```bash
-openfang agent list
+rig agent list
 ```
 
 Output:
@@ -236,19 +236,19 @@ a1b2c3d4-e5f6-...                     hello-world      Running    groq         l
 Start an interactive chat session using the agent ID:
 
 ```bash
-openfang agent chat a1b2c3d4-e5f6-...
+rig agent chat a1b2c3d4-e5f6-...
 ```
 
 Or use the quick chat command (picks the first available agent):
 
 ```bash
-openfang chat
+rig chat
 ```
 
 Or specify an agent by name:
 
 ```bash
-openfang chat hello-world
+rig chat hello-world
 ```
 
 Example session:
@@ -289,7 +289,7 @@ Chat session ended.
 For persistent agents, multi-user access, and the WebChat UI, start the daemon:
 
 ```bash
-openfang start
+rig start
 ```
 
 Output:
@@ -309,7 +309,7 @@ The daemon provides:
 ### Check Status
 
 ```bash
-openfang status
+rig status
 ```
 
 ### Stop the Daemon
@@ -349,45 +349,45 @@ Now that you have OpenFang running:
 - **Build custom skills**: Extend agents with Python, WASM, or prompt-only skills. See [Skill Development](skill-development.md).
 - **Use the API**: 76 REST/WS/SSE endpoints, including an OpenAI-compatible `/v1/chat/completions`. See [API Reference](api-reference.md).
 - **Switch LLM providers**: 20 providers supported (Anthropic, OpenAI, Gemini, Groq, DeepSeek, xAI, Ollama, and more). Per-agent model overrides.
-- **Set up workflows**: Chain multiple agents together. Use `openfang workflow create` with a TOML workflow definition.
+- **Set up workflows**: Chain multiple agents together. Use `rig workflow create` with a TOML workflow definition.
 - **Use MCP**: Connect to external tools via Model Context Protocol. Configure in `config.toml` under `[[mcp_servers]]`.
-- **Migrate from OpenClaw**: Run `openfang migrate --from openclaw`. See [MIGRATION.md](../MIGRATION.md).
+- **Migrate from OpenClaw**: Run `rig migrate --from openclaw`. See [MIGRATION.md](../MIGRATION.md).
 - **Desktop app**: Run `cargo tauri dev` for a native desktop experience with system tray.
-- **Run diagnostics**: `openfang doctor` checks your entire setup.
+- **Run diagnostics**: `rig doctor` checks your entire setup.
 
 ### Useful Commands Reference
 
 ```bash
-openfang init                          # Initialize ~/.openfang/
-openfang start                         # Start the daemon
-openfang status                        # Check daemon status
-openfang doctor                        # Run diagnostic checks
+rig init                          # Initialize ~/.rig/
+rig start                         # Start the daemon
+rig status                        # Check daemon status
+rig doctor                        # Run diagnostic checks
 
-openfang agent spawn <manifest.toml>   # Spawn an agent
-openfang agent list                    # List all agents
-openfang agent chat <id>               # Chat with an agent
-openfang agent kill <id>               # Kill an agent
+rig agent spawn <manifest.toml>   # Spawn an agent
+rig agent list                    # List all agents
+rig agent chat <id>               # Chat with an agent
+rig agent kill <id>               # Kill an agent
 
-openfang workflow list                 # List workflows
-openfang workflow create <file.json>   # Create a workflow
-openfang workflow run <id> <input>     # Run a workflow
+rig workflow list                 # List workflows
+rig workflow create <file.json>   # Create a workflow
+rig workflow run <id> <input>     # Run a workflow
 
-openfang trigger list                  # List event triggers
-openfang trigger create <args>         # Create a trigger
-openfang trigger delete <id>           # Delete a trigger
+rig trigger list                  # List event triggers
+rig trigger create <args>         # Create a trigger
+rig trigger delete <id>           # Delete a trigger
 
-openfang skill install <source>        # Install a skill
-openfang skill list                    # List installed skills
-openfang skill search <query>          # Search FangHub
-openfang skill create                  # Scaffold a new skill
+rig skill install <source>        # Install a skill
+rig skill list                    # List installed skills
+rig skill search <query>          # Search FangHub
+rig skill create                  # Scaffold a new skill
 
-openfang channel list                  # List channel status
-openfang channel setup <channel>       # Interactive setup wizard
+rig channel list                  # List channel status
+rig channel setup <channel>       # Interactive setup wizard
 
-openfang config show                   # Show current config
-openfang config edit                   # Open config in editor
+rig config show                   # Show current config
+rig config edit                   # Open config in editor
 
-openfang chat [agent]                  # Quick chat (alias)
-openfang migrate --from openclaw       # Migrate from OpenClaw
-openfang mcp                           # Start MCP server (stdio)
+rig chat [agent]                  # Quick chat (alias)
+rig migrate --from openclaw       # Migrate from OpenClaw
+rig mcp                           # Start MCP server (stdio)
 ```

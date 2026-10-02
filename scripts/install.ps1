@@ -1,16 +1,16 @@
 # OpenFang installer for Windows
-# Usage: iwr -useb https://openfang.sh/install.ps1 | iex
-#   or:  powershell -c "irm https://openfang.sh/install.ps1 | iex"
+# Usage: iwr -useb https://rig.sh/install.ps1 | iex
+#   or:  powershell -c "irm https://rig.sh/install.ps1 | iex"
 #
 # Flags (via environment variables):
-#   $env:OPENFANG_INSTALL_DIR = custom install directory
-#   $env:OPENFANG_VERSION     = specific version tag (e.g. "v0.1.0")
+#   $env:RIG_INSTALL_DIR = custom install directory
+#   $env:RIG_VERSION     = specific version tag (e.g. "v0.1.0")
 
 $ErrorActionPreference = 'Stop'
 
 $Repo = "toxicwind/rig"
-$DefaultInstallDir = Join-Path $env:USERPROFILE ".openfang\bin"
-$InstallDir = if ($env:OPENFANG_INSTALL_DIR) { $env:OPENFANG_INSTALL_DIR } else { $DefaultInstallDir }
+$DefaultInstallDir = Join-Path $env:USERPROFILE ".rig\bin"
+$InstallDir = if ($env:RIG_INSTALL_DIR) { $env:RIG_INSTALL_DIR } else { $DefaultInstallDir }
 
 function Write-Banner {
     Write-Host ""
@@ -53,15 +53,15 @@ function Get-Architecture {
         { $_ -in "ARM64", "AARCH64", "ARM" }     { return "aarch64" }
         default {
             Write-Host "  Unsupported architecture: $arch (detection may have failed)" -ForegroundColor Red
-            Write-Host "  Try: cargo install --git https://github.com/toxicwind/rig openfang-cli" -ForegroundColor Yellow
+            Write-Host "  Try: cargo install --git https://github.com/toxicwind/rig rig-cli" -ForegroundColor Yellow
             exit 1
         }
     }
 }
 
 function Get-LatestVersion {
-    if ($env:OPENFANG_VERSION) {
-        return $env:OPENFANG_VERSION
+    if ($env:RIG_VERSION) {
+        return $env:RIG_VERSION
     }
 
     Write-Host "  Fetching latest release..."
@@ -72,7 +72,7 @@ function Get-LatestVersion {
     catch {
         Write-Host "  Could not determine latest version." -ForegroundColor Red
         Write-Host "  Install from source instead:" -ForegroundColor Yellow
-        Write-Host "    cargo install --git https://github.com/$Repo openfang-cli"
+        Write-Host "    cargo install --git https://github.com/$Repo rig-cli"
         exit 1
     }
 }
@@ -83,7 +83,7 @@ function Install-OpenFang {
     $arch = Get-Architecture
     $version = Get-LatestVersion
     $target = "${arch}-pc-windows-msvc"
-    $archive = "openfang-${target}.zip"
+    $archive = "rig-${target}.zip"
     $url = "https://github.com/$Repo/releases/download/$version/$archive"
     $checksumUrl = "$url.sha256"
 
@@ -95,7 +95,7 @@ function Install-OpenFang {
     }
 
     # Download to temp
-    $tempDir = Join-Path ([System.IO.Path]::GetTempPath()) "openfang-install"
+    $tempDir = Join-Path ([System.IO.Path]::GetTempPath()) "rig-install"
     if (Test-Path $tempDir) { Remove-Item -Recurse -Force $tempDir }
     New-Item -ItemType Directory -Path $tempDir -Force | Out-Null
 
@@ -108,7 +108,7 @@ function Install-OpenFang {
     catch {
         Write-Host "  Download failed. The release may not exist for your platform." -ForegroundColor Red
         Write-Host "  Install from source instead:" -ForegroundColor Yellow
-        Write-Host "    cargo install --git https://github.com/$Repo openfang-cli"
+        Write-Host "    cargo install --git https://github.com/$Repo rig-cli"
         Remove-Item -Recurse -Force $tempDir -ErrorAction SilentlyContinue
         exit 1
     }
@@ -137,22 +137,22 @@ function Install-OpenFang {
 
     # Extract
     Expand-Archive -Path $archivePath -DestinationPath $tempDir -Force
-    $exePath = Join-Path $tempDir "openfang.exe"
+    $exePath = Join-Path $tempDir "rig.exe"
     if (-not (Test-Path $exePath)) {
         # May be nested in a directory
-        $found = Get-ChildItem -Path $tempDir -Filter "openfang.exe" -Recurse | Select-Object -First 1
+        $found = Get-ChildItem -Path $tempDir -Filter "rig.exe" -Recurse | Select-Object -First 1
         if ($found) {
             $exePath = $found.FullName
         }
         else {
-            Write-Host "  Could not find openfang.exe in archive." -ForegroundColor Red
+            Write-Host "  Could not find rig.exe in archive." -ForegroundColor Red
             Remove-Item -Recurse -Force $tempDir -ErrorAction SilentlyContinue
             exit 1
         }
     }
 
     # Install
-    Copy-Item -Path $exePath -Destination (Join-Path $InstallDir "openfang.exe") -Force
+    Copy-Item -Path $exePath -Destination (Join-Path $InstallDir "rig.exe") -Force
 
     # Clean up temp
     Remove-Item -Recurse -Force $tempDir -ErrorAction SilentlyContinue
@@ -166,7 +166,7 @@ function Install-OpenFang {
     }
 
     # Verify
-    $installedExe = Join-Path $InstallDir "openfang.exe"
+    $installedExe = Join-Path $InstallDir "rig.exe"
     if (Test-Path $installedExe) {
         try {
             $versionOutput = & $installedExe --version 2>&1
@@ -181,7 +181,7 @@ function Install-OpenFang {
 
     Write-Host ""
     Write-Host "  Get started:" -ForegroundColor Cyan
-    Write-Host "    openfang init"
+    Write-Host "    rig init"
     Write-Host ""
     Write-Host "  The setup wizard will guide you through provider selection"
     Write-Host "  and configuration."

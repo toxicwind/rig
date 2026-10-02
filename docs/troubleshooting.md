@@ -22,7 +22,7 @@ Common issues, diagnostics, and answers to frequently asked questions about Open
 Run the built-in diagnostic tool:
 
 ```bash
-openfang doctor
+rig doctor
 ```
 
 This checks:
@@ -36,7 +36,7 @@ This checks:
 ### Check Daemon Status
 
 ```bash
-openfang status
+rig status
 ```
 
 ### Check Health via API
@@ -51,9 +51,9 @@ curl http://127.0.0.1:4200/api/health/detail  # Requires auth
 OpenFang uses `tracing` for structured logging. Set the log level via environment:
 
 ```bash
-RUST_LOG=info openfang start          # Default
-RUST_LOG=debug openfang start         # Verbose
-RUST_LOG=openfang=debug openfang start  # Only OpenFang debug, deps at info
+RUST_LOG=info rig start          # Default
+RUST_LOG=debug rig start         # Verbose
+RUST_LOG=rig=debug rig start  # Only OpenFang debug, deps at info
 ```
 
 ---
@@ -80,7 +80,7 @@ sudo apt install pkg-config libssl-dev libsqlite3-dev
 sudo dnf install openssl-devel sqlite-devel
 ```
 
-### `openfang` command not found after install
+### `rig` command not found after install
 
 **Fix**: Ensure `~/.cargo/bin` is in your PATH:
 ```bash
@@ -94,13 +94,13 @@ export PATH="$HOME/.cargo/bin:$PATH"
 
 **Fix**: Boot to a TTY (`Ctrl+Alt+F2`) and remove any OpenFang PATH lines from `config.fish`:
 ```bash
-sed -i '/openfang/d' ~/.config/fish/config.fish
+sed -i '/rig/d' ~/.config/fish/config.fish
 ```
-Then re-run the installer — current versions write to `~/.config/fish/conf.d/openfang.fish` (a drop-in directory) instead, and guard the path with `test -d` so a missing install dir can never wedge fish startup.
+Then re-run the installer — current versions write to `~/.config/fish/conf.d/rig.fish` (a drop-in directory) instead, and guard the path with `test -d` so a missing install dir can never wedge fish startup.
 
 To remove OpenFang's PATH entry cleanly:
 ```bash
-rm ~/.config/fish/conf.d/openfang.fish
+rm ~/.config/fish/conf.d/rig.fish
 ```
 
 ### Docker container won't start
@@ -126,7 +126,7 @@ docker run --rm \
   --add-host=host.docker.internal:host-gateway \
   -e OLLAMA_HOST=http://host.docker.internal:11434 \
   -p 4200:4200 \
-  ghcr.io/rightnow-ai/openfang:latest
+  ghcr.io/rightnow-ai/rig:latest
 ```
 
 Verify the bridge works:
@@ -140,8 +140,8 @@ For Docker Compose use `extra_hosts:`:
 
 ```yaml
 services:
-  openfang:
-    image: ghcr.io/rightnow-ai/openfang:latest
+  rig:
+    image: ghcr.io/rightnow-ai/rig:latest
     ports:
       - "4200:4200"
     extra_hosts:
@@ -155,14 +155,14 @@ connection refused or DNS lookup errors.
 
 ### Curl-equipped reference image
 
-The default `ghcr.io/rightnow-ai/openfang` image does not ship `curl`, so
-`docker exec openfang curl ...` returns `exec: curl: not found`. If you need
+The default `ghcr.io/rightnow-ai/rig` image does not ship `curl`, so
+`docker exec rig curl ...` returns `exec: curl: not found`. If you need
 in-container probes for healthchecks or egress verification, build a thin
 overlay image:
 
 ```dockerfile
 # Dockerfile.curl
-FROM ghcr.io/rightnow-ai/openfang:latest
+FROM ghcr.io/rightnow-ai/rig:latest
 USER root
 RUN apt-get update \
     && apt-get install -y --no-install-recommends ca-certificates curl \
@@ -172,8 +172,8 @@ RUN apt-get update \
 Build and run:
 
 ```bash
-docker build -f Dockerfile.curl -t openfang-curl:latest .
-docker run --rm openfang-curl:latest curl -s https://example.com
+docker build -f Dockerfile.curl -t rig-curl:latest .
+docker run --rm rig-curl:latest curl -s https://example.com
 ```
 
 Use this variant when you need `HEALTHCHECK` directives or in-container
@@ -185,12 +185,12 @@ diagnostics. The base image stays slim by default.
 
 ### "Config file not found"
 
-**Fix**: Run `openfang init` to create the default config:
+**Fix**: Run `rig init` to create the default config:
 ```bash
-openfang init
+rig init
 ```
 
-This creates `~/.openfang/config.toml` with sensible defaults.
+This creates `~/.rig/config.toml` with sensible defaults.
 
 ### "Missing API key" warnings on start
 
@@ -211,7 +211,7 @@ Add to your shell profile to persist across sessions.
 
 Run validation manually:
 ```bash
-openfang config show
+rig config show
 ```
 
 Common issues:
@@ -356,7 +356,7 @@ python -m vllm.entrypoints.openai.api_server --model ...
 
 Check logs for the specific error:
 ```bash
-RUST_LOG=openfang_channels=debug openfang start
+RUST_LOG=rig_channels=debug rig start
 ```
 
 ---
@@ -417,7 +417,7 @@ tools = ["file_read", "web_fetch", "shell_exec"]  # Must list each tool
 ### Agent spawning fails
 
 **Check**:
-1. TOML manifest is valid: `openfang agent spawn --dry-run manifest.toml`
+1. TOML manifest is valid: `rig agent spawn --dry-run manifest.toml`
 2. LLM provider is configured and has a valid key
 3. Model specified in manifest exists in the catalog
 
@@ -467,7 +467,7 @@ cors_origins = ["http://localhost:5173", "https://your-app.com"]
 
 **Checklist**:
 1. Use `POST /v1/chat/completions` (not `/api/agents/{id}/message`)
-2. Set the model to `openfang:agent-name` (e.g., `openfang:coder`)
+2. Set the model to `rig:agent-name` (e.g., `rig:coder`)
 3. Streaming: set `"stream": true` for SSE responses
 4. Images: use `image_url` with `data:image/png;base64,...` format
 
@@ -480,7 +480,7 @@ cors_origins = ["http://localhost:5173", "https://your-app.com"]
 **Checklist**:
 1. Only one instance can run at a time (single-instance enforcement)
 2. Check if the daemon is already running on the same ports
-3. Try deleting `~/.openfang/daemon.json` and restarting
+3. Try deleting `~/.rig/daemon.json` and restarting
 
 ### White/blank screen in app
 
@@ -512,7 +512,7 @@ cors_origins = ["http://localhost:5173", "https://your-app.com"]
 **Normal startup**: <200ms for the kernel, ~1-2s with channel adapters.
 
 If slower:
-- Check database size (`~/.openfang/data/openfang.db`)
+- Check database size (`~/.rig/data/rig.db`)
 - Reduce the number of enabled channels
 - Check network connectivity (MCP server connections happen at boot)
 
@@ -529,7 +529,7 @@ If slower:
 
 ### How do I switch the default LLM provider?
 
-Edit `~/.openfang/config.toml`:
+Edit `~/.rig/config.toml`:
 ```toml
 [default_model]
 provider = "groq"
@@ -543,7 +543,7 @@ Yes. Each agent can use a different provider via its manifest `[model]` section.
 
 ### How do I add a new channel?
 
-1. Add the channel config to `~/.openfang/config.toml` under `[channels]`
+1. Add the channel config to `~/.rig/config.toml` under `[channels]`
 2. Set the required environment variables (tokens, secrets)
 3. Restart the daemon
 
@@ -551,7 +551,7 @@ Yes. Each agent can use a different provider via its manifest `[model]` section.
 
 ```bash
 # From source
-cd openfang && git pull && cargo install --path crates/openfang-cli
+cd rig && git pull && cargo install --path crates/rig-cli
 
 # Docker
 docker pull ghcr.io/toxicwind/rig:latest
@@ -563,20 +563,20 @@ Yes. Agents can use the `agent_send`, `agent_spawn`, `agent_find`, and `agent_li
 
 ### Is my data sent to the cloud?
 
-Only LLM API calls go to the provider's servers. All agent data, memory, sessions, and configuration are stored locally in SQLite (`~/.openfang/data/openfang.db`). The OFP wire protocol uses HMAC-SHA256 mutual authentication for P2P communication.
+Only LLM API calls go to the provider's servers. All agent data, memory, sessions, and configuration are stored locally in SQLite (`~/.rig/data/rig.db`). The OFP wire protocol uses HMAC-SHA256 mutual authentication for P2P communication.
 
 ### How do I back up my data?
 
 Back up these files:
-- `~/.openfang/config.toml` (configuration)
-- `~/.openfang/data/openfang.db` (all agent data, memory, sessions)
-- `~/.openfang/skills/` (installed skills)
+- `~/.rig/config.toml` (configuration)
+- `~/.rig/data/rig.db` (all agent data, memory, sessions)
+- `~/.rig/skills/` (installed skills)
 
 ### How do I reset everything?
 
 ```bash
-rm -rf ~/.openfang
-openfang init  # Start fresh
+rm -rf ~/.rig
+rig init  # Start fresh
 ```
 
 ### Can I run OpenFang without an internet connection?
@@ -605,7 +605,7 @@ model = "llama3.2"
 | Binary size | ~30 MB | ~200 MB |
 | Startup | <200 ms | ~3 s |
 
-OpenFang can import OpenClaw configs: `openfang migrate --from openclaw`
+OpenFang can import OpenClaw configs: `rig migrate --from openclaw`
 
 ### How do I report a bug or request a feature?
 
@@ -626,7 +626,7 @@ OpenFang can import OpenClaw configs: `openfang migrate --from openclaw`
 ### How do I enable debug logging for a specific crate?
 
 ```bash
-RUST_LOG=openfang_runtime=debug,openfang_channels=info openfang start
+RUST_LOG=rig_runtime=debug,rig_channels=info rig start
 ```
 
 ### Can I use OpenFang as a library?
@@ -634,11 +634,11 @@ RUST_LOG=openfang_runtime=debug,openfang_channels=info openfang start
 Yes. Each crate is independently usable:
 ```toml
 [dependencies]
-openfang-runtime = { path = "crates/openfang-runtime" }
-openfang-memory = { path = "crates/openfang-memory" }
+rig-runtime = { path = "crates/rig-runtime" }
+rig-memory = { path = "crates/rig-memory" }
 ```
 
-The `openfang-kernel` crate assembles everything, but you can use individual crates for custom integrations.
+The `rig-kernel` crate assembles everything, but you can use individual crates for custom integrations.
 
 ---
 
@@ -648,21 +648,21 @@ The `openfang-kernel` crate assembles everything, but you can use individual cra
 
 Re-run the install script to get the latest release:
 ```bash
-curl -fsSL https://openfang.sh/install | sh
+curl -fsSL https://rig.sh/install | sh
 ```
 Or build from source:
 ```bash
 git pull origin main
-cargo build --release -p openfang-cli
+cargo build --release -p rig-cli
 ```
 
 ### How do I run OpenFang in Docker?
 
 ```bash
-docker run -d --name openfang \
+docker run -d --name rig \
   -e GROQ_API_KEY=your_key_here \
   -p 4200:4200 \
-  ghcr.io/rightnow-ai/openfang:latest
+  ghcr.io/rightnow-ai/rig:latest
 ```
 
 To reach a host LLM (Ollama, vLLM, whisper.cpp) from inside the container,
@@ -674,7 +674,7 @@ in-container healthchecks.
 
 ### How do I protect the dashboard with a password?
 
-OpenFang has built-in dashboard authentication. Enable it in `~/.openfang/config.toml`:
+OpenFang has built-in dashboard authentication. Enable it in `~/.rig/config.toml`:
 
 ```toml
 [auth]
@@ -686,7 +686,7 @@ password_hash = "$argon2id$..."  # see below
 Generate the password hash:
 
 ```bash
-openfang auth hash-password
+rig auth hash-password
 ```
 
 Paste the output into the `password_hash` field and restart the daemon.
@@ -695,7 +695,7 @@ For public-facing deployments, you should also place a reverse proxy (Caddy, ngi
 
 ### How do I configure the embedding model for memory?
 
-In `~/.openfang/config.toml`:
+In `~/.rig/config.toml`:
 ```toml
 [memory]
 embedding_provider = "openai"     # or "ollama", "gemini"
@@ -744,7 +744,7 @@ Not yet — each channel type currently supports one bot. Multi-bot routing is t
 
 ### Claude Code integration shows errors
 
-Add to `~/.openfang/config.toml`:
+Add to `~/.rig/config.toml`:
 ```toml
 [claude_code]
 skip_permissions = true

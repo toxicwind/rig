@@ -61,7 +61,7 @@ Welcome to the OpenFang documentation. OpenFang is the open-source Agent Operati
 
 ```bash
 export GROQ_API_KEY="your-key"
-openfang init && openfang start
+rig init && rig start
 # Open http://127.0.0.1:4200
 ```
 
@@ -85,10 +85,10 @@ openfang init && openfang start
 
 | Path | Description |
 |------|-------------|
-| `~/.openfang/config.toml` | Main configuration file |
-| `~/.openfang/data/openfang.db` | SQLite database |
-| `~/.openfang/skills/` | Installed skills |
-| `~/.openfang/daemon.json` | Daemon PID and port info |
+| `~/.rig/config.toml` | Main configuration file |
+| `~/.rig/data/rig.db` | SQLite database |
+| `~/.rig/skills/` | Installed skills |
+| `~/.rig/daemon.json` | Daemon PID and port info |
 | `agents/` | Agent template manifests |
 
 ### Key Environment Variables

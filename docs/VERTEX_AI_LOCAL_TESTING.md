@@ -11,7 +11,7 @@
 ### Option 1: Use the Batch File
 
 ```batch
-# Run this from the openfang directory:
+# Run this from the rig directory:
 start-vertex.bat
 ```
 
@@ -26,7 +26,7 @@ This automatically:
 
 ```powershell
 # 1. Kill any existing instances
-taskkill /F /IM openfang.exe 2>$null
+taskkill /F /IM rig.exe 2>$null
 
 # 2. Set environment variables (CRITICAL: clear proxy!)
 $env:HTTPS_PROXY = ""
@@ -37,8 +37,8 @@ $env:GOOGLE_APPLICATION_CREDENTIALS = "C:\Users\at384\Downloads\osc\dbg-grcit-de
 $env:VERTEX_AI_ACCESS_TOKEN = gcloud auth print-access-token
 
 # 4. Start OpenFang
-cd C:\Users\at384\Downloads\osc\dllm\openfang
-.\target\debug\openfang.exe start
+cd C:\Users\at384\Downloads\osc\dllm\rig
+.\target\debug\rig.exe start
 ```
 
 ## Testing the API
@@ -83,7 +83,7 @@ Invoke-RestMethod -Uri $url -Method POST -Headers @{Authorization = "Bearer $tok
 
 ## Configuration
 
-### ~/.openfang/config.toml
+### ~/.rig/config.toml
 
 ```toml
 [default_model]
@@ -139,20 +139,20 @@ $env:VERTEX_AI_ACCESS_TOKEN = gcloud auth print-access-token
 ## Build Commands
 
 ```powershell
-cd C:\Users\at384\Downloads\osc\dllm\openfang
+cd C:\Users\at384\Downloads\osc\dllm\rig
 $env:PATH = "$env:USERPROFILE\.cargo\bin;$env:PATH"
 
 # Debug build (faster compilation)
-cargo build -p openfang-cli
+cargo build -p rig-cli
 
 # Run tests
-cargo test -p openfang-runtime --lib vertex
+cargo test -p rig-runtime --lib vertex
 
 # Check formatting
-cargo fmt --check -p openfang-runtime
+cargo fmt --check -p rig-runtime
 
 # Run clippy
-cargo clippy -p openfang-runtime --lib -- -W warnings
+cargo clippy -p rig-runtime --lib -- -W warnings
 ```
 
 ## API Endpoints
@@ -167,5 +167,5 @@ cargo clippy -p openfang-runtime --lib -- -W warnings
 
 ## Files Modified in PR
 
-- `crates/openfang-runtime/src/drivers/vertex.rs` (NEW - ~790 lines)
-- `crates/openfang-runtime/src/drivers/mod.rs` (+62 lines)
+- `crates/rig-runtime/src/drivers/vertex.rs` (NEW - ~790 lines)
+- `crates/rig-runtime/src/drivers/mod.rs` (+62 lines)

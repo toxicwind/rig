@@ -1,0 +1,38 @@
+[Unit]
+Description=OpenFang Agent OS Daemon
+Documentation=https://github.com/rig-ai/rig
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=rig
+Group=rig
+ExecStart=/usr/local/bin/rig start
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=30
+
+# Environment
+EnvironmentFile=-/etc/rig/env
+WorkingDirectory=/var/lib/rig
+
+# Security hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/rig
+PrivateTmp=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+MemoryDenyWriteExecute=false
+RestrictRealtime=true
+
+# Resource limits
+LimitNOFILE=65536
+LimitNPROC=4096
+
+[Install]
+WantedBy=multi-user.target

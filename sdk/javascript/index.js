@@ -1,8 +1,8 @@
 /**
- * @openfang/sdk — Official JavaScript client for the OpenFang Agent OS REST API.
+ * @rig/sdk — Official JavaScript client for the OpenFang Agent OS REST API.
  *
  * Usage:
- *   const { OpenFang } = require("@openfang/sdk");
+ *   const { OpenFang } = require("@rig/sdk");
  *   const client = new OpenFang("http://localhost:3000");
  *
  *   const agent = await client.agents.create({ template: "assistant" });

@@ -21,11 +21,11 @@ Date: 2026-09-14. Author: scheduling worker (Agent 2 side).
 
 ## 2. Rig's scheduling primitive — YES, it exists and works
 
-`crates/openfang-kernel/src/cron.rs` — `CronScheduler`: jobs in a DashMap,
+`crates/rig-kernel/src/cron.rs` — `CronScheduler`: jobs in a DashMap,
 persisted to `<home>/cron_jobs.json`, kernel tick loop (`kernel.rs`, every 15s)
 calls `due_jobs()` → `cron_run_job()`. Auto-disable after 5 consecutive failures.
 
-`crates/openfang-types/src/scheduler.rs`:
+`crates/rig-types/src/scheduler.rs`:
 - Schedules: `At { at }`, `Every { every_secs: 60..=86400 }`,
   `Cron { expr /* 5-field */, tz }`.
 - Actions: `SystemEvent { text }` (no agent needed), `AgentTurn { message,
@@ -35,9 +35,9 @@ calls `due_jobs()` → `cron_run_job()`. Auto-disable after 5 consecutive failur
   `LocalFile` append is the fleet-channel sink
   (`/home/toxic/.fleet-bus/directives.md`).
 
-Management: `openfang cron list|create|delete|enable|disable`, REST
+Management: `rig cron list|create|delete|enable|disable`, REST
 `GET/POST /api/cron/jobs`, `DELETE /api/cron/jobs/{id}` on the daemon
-(`http://127.0.0.1:25203`, see `~/.openfang/daemon.json`).
+(`http://127.0.0.1:25203`, see `~/.rig/daemon.json`).
 
 **Proven live 2026-09-14:** registered canary job `fleet-sched-canary`
 (`e341caa3-…`, `Every { 60s }`, `SystemEvent`) against the production daemon;
@@ -88,7 +88,7 @@ registry and today's fleet channel. Compact, phone-readable, no prose."
 1. Pilot green: Shingle agent answers an agent_turn with a real digest.
 2. `curl -X POST http://127.0.0.1:25203/api/cron/jobs` with
    `docs/fleet-snapshot-job.json` (fill in agent_id).
-3. Watch two consecutive firings: `openfang cron list` shows `last_run`
+3. Watch two consecutive firings: `rig cron list` shows `last_run`
    advancing; digest lines append to directives.md.
 4. Only then: `cron.remove fleet-snapshot-5m` (Muse runtime side).
 5. If the job auto-disables (5 failures): leave the cron up, debug, re-enable.
