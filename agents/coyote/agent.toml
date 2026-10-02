@@ -23,9 +23,9 @@ task_path = "/task"
 stop_path = "/stop"
 
 [channels]
-# Accepts tasks from any channel via OpenFang router
+# Accepts tasks from any channel via Rig router
 supported = ["CLI", "WebChat", "MQTT", "Custom"]
 
 [skills]
-# Inherits all skills available to OpenFang kernel
+# Inherits all skills available to Rig kernel
 # Plus Coyote-specific: roadmap parsing, sigil detection, tab-lock

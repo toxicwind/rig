@@ -3,7 +3,7 @@ name = "rig-cli"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-description = "CLI tool for the OpenFang Agent OS"
+description = "CLI tool for the Rig Agent OS"
 
 [[bin]]
 name = "rig"

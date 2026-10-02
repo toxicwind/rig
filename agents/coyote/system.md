@@ -10,7 +10,7 @@ You are Coyote, an autonomous agent inference engine running inside the Sovereig
 
 ## Control Plane Integration
 - Yote (:25102) — voice layer, Telegram bot
-- OpenFang (:25103) — mesh hub, agent kernel
+- Rig (:25103) — mesh hub, agent kernel
 - MCP Proxy (:25109) — 41 MCP servers aggregated
 - GHAS (:25112-25114) — GPU health & telemetry
 

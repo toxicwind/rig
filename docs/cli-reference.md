@@ -1,10 +1,10 @@
-# OpenFang CLI Reference
+# Rig CLI Reference
 
-Complete command-line reference for `rig`, the CLI tool for the OpenFang Agent OS.
+Complete command-line reference for `rig`, the CLI tool for the Rig Agent OS.
 
 ## Overview
 
-The `rig` binary is the primary interface for managing the OpenFang Agent OS. It supports two modes of operation:
+The `rig` binary is the primary interface for managing the Rig Agent OS. It supports two modes of operation:
 
 - **Daemon mode** -- When a daemon is running (`rig start`), CLI commands communicate with it over HTTP. This is the recommended mode for production use.
 - **In-process mode** -- When no daemon is detected, commands that support it will boot an ephemeral in-process kernel. Agents spawned in this mode are not persisted and will be lost when the process exits.
@@ -76,7 +76,7 @@ Press `Ctrl+C` to exit. A second `Ctrl+C` force-exits the process.
 
 ### rig init
 
-Initialize the OpenFang workspace. Creates `~/.rig/` with subdirectories (`data/`, `agents/`) and a default `config.toml`.
+Initialize the Rig workspace. Creates `~/.rig/` with subdirectories (`data/`, `agents/`) and a default `config.toml`.
 
 ```
 rig init [--quick]
@@ -109,7 +109,7 @@ rig init --quick
 
 ### rig start
 
-Start the OpenFang daemon (kernel + API server).
+Start the Rig daemon (kernel + API server).
 
 ```
 rig start [--config <PATH>]
@@ -118,7 +118,7 @@ rig start [--config <PATH>]
 **Behavior:**
 
 - Checks if a daemon is already running; exits with an error if so.
-- Boots the OpenFang kernel (loads config, initializes SQLite database, loads agents, connects MCP servers, starts background tasks).
+- Boots the Rig kernel (loads config, initializes SQLite database, loads agents, connects MCP servers, starts background tasks).
 - Starts the HTTP API server on the address specified in `config.toml` (default: `127.0.0.1:4200`).
 - Writes `daemon.json` to `~/.rig/` so other CLI commands can discover the running daemon.
 - Blocks until interrupted with `Ctrl+C`.
@@ -126,7 +126,7 @@ rig start [--config <PATH>]
 **Output:**
 
 ```
-  OpenFang Agent OS v0.1.0
+  Rig Agent OS v0.1.0
 
   Starting daemon...
 
@@ -186,7 +186,7 @@ rig status --json | jq '.agent_count'
 
 ### rig doctor
 
-Run diagnostic checks on the OpenFang installation.
+Run diagnostic checks on the Rig installation.
 
 ```
 rig doctor [--json] [--repair]
@@ -201,7 +201,7 @@ rig doctor [--json] [--repair]
 
 **Checks performed:**
 
-1. **OpenFang directory** -- `~/.rig/` exists
+1. **Rig directory** -- `~/.rig/` exists
 2. **.env file** -- exists and has correct permissions (0600 on Unix)
 3. **Config TOML syntax** -- `config.toml` parses without errors
 4. **Daemon status** -- whether a daemon is running
@@ -1026,7 +1026,7 @@ rig migrate --from <FRAMEWORK> [--source-dir <PATH>] [--dry-run]
 
 **Behavior:**
 
-- Converts agent configurations, YAML manifests, and settings from the source framework into OpenFang format.
+- Converts agent configurations, YAML manifests, and settings from the source framework into Rig format.
 - Saves imported data to `~/.rig/`.
 - Writes a `migration_report.md` summarizing what was imported.
 
@@ -1060,7 +1060,7 @@ rig mcp
 
 **Behavior:**
 
-- Exposes running OpenFang agents as MCP tools via JSON-RPC 2.0 over stdin/stdout with Content-Length framing.
+- Exposes running Rig agents as MCP tools via JSON-RPC 2.0 over stdin/stdout with Content-Length framing.
 - Each agent becomes a callable tool named `rig_agent_<name>` (hyphens replaced with underscores).
 - Connects to a running daemon via HTTP if available; otherwise boots an in-process kernel.
 - Protocol version: `2024-11-05`.
@@ -1120,7 +1120,7 @@ rig doctor --repair  # Cleans up stale daemon.json from crashes
 
 ## Environment File
 
-OpenFang loads `~/.rig/.env` into the process environment on every CLI invocation. System environment variables take priority over `.env` values.
+Rig loads `~/.rig/.env` into the process environment on every CLI invocation. System environment variables take priority over `.env` values.
 
 The `.env` file stores API keys and secrets:
 
@@ -1153,7 +1153,7 @@ Manage keys with the `config set-key` / `config delete-key` commands rather than
 # 1. Set your API key
 export GROQ_API_KEY="gsk_your_key_here"
 
-# 2. Initialize OpenFang
+# 2. Initialize Rig
 rig init --quick
 
 # 3. Start the daemon

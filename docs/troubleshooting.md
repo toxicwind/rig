@@ -1,6 +1,6 @@
 # Troubleshooting & FAQ
 
-Common issues, diagnostics, and answers to frequently asked questions about OpenFang.
+Common issues, diagnostics, and answers to frequently asked questions about Rig.
 
 ## Table of Contents
 
@@ -48,12 +48,12 @@ curl http://127.0.0.1:4200/api/health/detail  # Requires auth
 
 ### View Logs
 
-OpenFang uses `tracing` for structured logging. Set the log level via environment:
+Rig uses `tracing` for structured logging. Set the log level via environment:
 
 ```bash
 RUST_LOG=info rig start          # Default
 RUST_LOG=debug rig start         # Verbose
-RUST_LOG=rig=debug rig start  # Only OpenFang debug, deps at info
+RUST_LOG=rig=debug rig start  # Only Rig debug, deps at info
 ```
 
 ---
@@ -90,15 +90,15 @@ export PATH="$HOME/.cargo/bin:$PATH"
 
 ### Black screen on login after install (Arch / CachyOS / fish users)
 
-**Cause**: Older OpenFang installers (`<v0.6.4`) appended a PATH line directly to `~/.config/fish/config.fish`. On Arch derivatives like CachyOS, the desktop session can source fish on login — a malformed or invalid PATH line then prevents the session from finishing, leaving you on a black screen.
+**Cause**: Older Rig installers (`<v0.6.4`) appended a PATH line directly to `~/.config/fish/config.fish`. On Arch derivatives like CachyOS, the desktop session can source fish on login — a malformed or invalid PATH line then prevents the session from finishing, leaving you on a black screen.
 
-**Fix**: Boot to a TTY (`Ctrl+Alt+F2`) and remove any OpenFang PATH lines from `config.fish`:
+**Fix**: Boot to a TTY (`Ctrl+Alt+F2`) and remove any Rig PATH lines from `config.fish`:
 ```bash
 sed -i '/rig/d' ~/.config/fish/config.fish
 ```
 Then re-run the installer — current versions write to `~/.config/fish/conf.d/rig.fish` (a drop-in directory) instead, and guard the path with `test -d` so a missing install dir can never wedge fish startup.
 
-To remove OpenFang's PATH entry cleanly:
+To remove Rig's PATH entry cleanly:
 ```bash
 rm ~/.config/fish/conf.d/rig.fish
 ```
@@ -112,7 +112,7 @@ rm ~/.config/fish/conf.d/rig.fish
 
 ### Connecting to host services from Docker
 
-If you run OpenFang inside Docker and need to reach a service running on the
+If you run Rig inside Docker and need to reach a service running on the
 host (Ollama on `127.0.0.1:11434`, whisper.cpp on `127.0.0.1:8090`, a local
 Postgres, etc.), `localhost` inside the container points at the container
 itself, not the host. You must opt in to the host bridge.
@@ -367,7 +367,7 @@ RUST_LOG=rig_channels=debug rig start
 
 **Cause**: The agent is repeatedly calling the same tool with the same parameters.
 
-**Automatic protection**: OpenFang has a built-in loop guard:
+**Automatic protection**: Rig has a built-in loop guard:
 - **Warn** at 3 identical tool calls
 - **Block** at 5 identical tool calls
 - **Circuit breaker** at 30 total blocked calls (stops the agent)
@@ -547,7 +547,7 @@ Yes. Each agent can use a different provider via its manifest `[model]` section.
 2. Set the required environment variables (tokens, secrets)
 3. Restart the daemon
 
-### How do I update OpenFang?
+### How do I update Rig?
 
 ```bash
 # From source
@@ -579,7 +579,7 @@ rm -rf ~/.rig
 rig init  # Start fresh
 ```
 
-### Can I run OpenFang without an internet connection?
+### Can I run Rig without an internet connection?
 
 Yes, if you use a local LLM provider:
 - **Ollama**: `ollama serve` + `ollama pull llama3.2`
@@ -593,9 +593,9 @@ provider = "ollama"
 model = "llama3.2"
 ```
 
-### What's the difference between OpenFang and OpenClaw?
+### What's the difference between Rig and OpenClaw?
 
-| Aspect | OpenFang | OpenClaw |
+| Aspect | Rig | OpenClaw |
 |--------|----------|----------|
 | Language | Rust | Python |
 | Channels | 40 | 38 |
@@ -605,7 +605,7 @@ model = "llama3.2"
 | Binary size | ~30 MB | ~200 MB |
 | Startup | <200 ms | ~3 s |
 
-OpenFang can import OpenClaw configs: `rig migrate --from openclaw`
+Rig can import OpenClaw configs: `rig migrate --from openclaw`
 
 ### How do I report a bug or request a feature?
 
@@ -629,7 +629,7 @@ OpenFang can import OpenClaw configs: `rig migrate --from openclaw`
 RUST_LOG=rig_runtime=debug,rig_channels=info rig start
 ```
 
-### Can I use OpenFang as a library?
+### Can I use Rig as a library?
 
 Yes. Each crate is independently usable:
 ```toml
@@ -644,7 +644,7 @@ The `rig-kernel` crate assembles everything, but you can use individual crates f
 
 ## Common Community Questions
 
-### How do I update OpenFang?
+### How do I update Rig?
 
 Re-run the install script to get the latest release:
 ```bash
@@ -656,7 +656,7 @@ git pull origin main
 cargo build --release -p rig-cli
 ```
 
-### How do I run OpenFang in Docker?
+### How do I run Rig in Docker?
 
 ```bash
 docker run -d --name rig \
@@ -674,7 +674,7 @@ in-container healthchecks.
 
 ### How do I protect the dashboard with a password?
 
-OpenFang has built-in dashboard authentication. Enable it in `~/.rig/config.toml`:
+Rig has built-in dashboard authentication. Enable it in `~/.rig/config.toml`:
 
 ```toml
 [auth]
@@ -740,7 +740,7 @@ api_key_env = "MOONSHOT_API_KEY"
 
 ### Can I use multiple Telegram bots?
 
-Not yet — each channel type currently supports one bot. Multi-bot routing is tracked as a feature request (#586). As a workaround, run multiple OpenFang instances on different ports with different configs.
+Not yet — each channel type currently supports one bot. Multi-bot routing is tracked as a feature request (#586). As a workaround, run multiple Rig instances on different ports with different configs.
 
 ### Claude Code integration shows errors
 

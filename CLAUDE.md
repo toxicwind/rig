@@ -1,9 +1,9 @@
 # Rig — Agent Instructions
 
-> Fork of OpenFang (upstream: RightNow-AI/rig). Repo home: toxicwind/rig. Binary/crate/config names still say `rig` for ecosystem compatibility.
+> Fork of Rig (upstream: RightNow-AI/rig). Repo home: toxicwind/rig. Binary/crate/config names still say `rig` for ecosystem compatibility.
 
 ## Project Overview
-OpenFang is an open-source Agent Operating System written in Rust (14 crates).
+Rig is an open-source Agent Operating System written in Rust (14 crates).
 - Config: `~/.rig/config.toml`
 - Default API: `http://127.0.0.1:4200`
 - CLI binary: `target/release/rig.exe` (or `target/debug/rig.exe`)

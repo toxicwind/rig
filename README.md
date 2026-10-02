@@ -20,7 +20,7 @@
 
 ![Rig terminal demo](docs/demo-terminal.svg)
 
-> **Rig** is Chris's fork of OpenFang ([upstream](https://github.com/RightNow-AI/rig)). Fork home: [toxicwind/rig](https://github.com/toxicwind/rig).
+> **Rig** is Chris's fork of Rig ([upstream](https://github.com/RightNow-AI/rig)). Fork home: [toxicwind/rig](https://github.com/toxicwind/rig).
 >
 > Binary, crate, config-path and env-var names still say `rig` for ecosystem compatibility; the full product rename is tracked separately.
 >
@@ -239,12 +239,12 @@ production use.
 ## Contact
 
 Maintainer: [toxicwind](https://github.com/toxicwind) — issues and discussions
-live at [toxicwind/rig](https://github.com/toxicwind/rig). Upstream OpenFang:
+live at [toxicwind/rig](https://github.com/toxicwind/rig). Upstream Rig:
 [RightNow-AI/rig](https://github.com/RightNow-AI/rig).
 
 ## Acknowledgments
 
-Built on the shoulders of [OpenFang](https://github.com/RightNow-AI/rig)
+Built on the shoulders of [Rig](https://github.com/RightNow-AI/rig)
 by RightNow — this fork carries its architecture forward. Thanks to every
 contributor upstream and here.
 

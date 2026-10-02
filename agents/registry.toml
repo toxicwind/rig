@@ -1,4 +1,4 @@
-# OpenFang Agent Registry
+# Rig Agent Registry
 # Dynamically loaded by agent_loader.rs — agents listed here are active.
 # To disable an agent, set enabled = false (keeps manifest on disk).
 

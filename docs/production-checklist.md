@@ -258,7 +258,7 @@ docker run --rm ghcr.io/toxicwind/rig:latest --version
 2. Tag v0.1.1 and push
 3. Wait for release workflow to complete
 4. Open the v0.1.0 app — after 10 seconds it should:
-   - Show "OpenFang Updating..." notification
+   - Show "Rig Updating..." notification
    - Download and install v0.1.1
    - Restart automatically to v0.1.1
 5. Right-click tray → "Check for Updates" → should show "Up to Date"

@@ -3,7 +3,7 @@ name = "rig-wire"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-description = "OpenFang Protocol (OFP) — agent-to-agent networking"
+description = "Rig Protocol (OFP) — agent-to-agent networking"
 
 [dependencies]
 rig-types = { path = "../rig-types" }

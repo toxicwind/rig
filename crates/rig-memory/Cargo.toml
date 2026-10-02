@@ -3,7 +3,7 @@ name = "rig-memory"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-description = "Memory substrate for the OpenFang Agent OS"
+description = "Memory substrate for the Rig Agent OS"
 
 [features]
 default = ["http-memory"]

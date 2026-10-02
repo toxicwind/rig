@@ -1,6 +1,6 @@
 # Agent Personas
 
-Every OpenFang agent can carry a persistent **persona**: a memorable name, a
+Every Rig agent can carry a persistent **persona**: a memorable name, a
 one-line role/vibe, and a sigil (emoji). It is declared in the agent's
 `agent.toml` and travels with the agent everywhere it shows up.
 

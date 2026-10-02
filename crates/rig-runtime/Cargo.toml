@@ -3,7 +3,7 @@ name = "rig-runtime"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-description = "Agent runtime and execution environment for OpenFang"
+description = "Agent runtime and execution environment for Rig"
 
 [dependencies]
 rig-types = { path = "../rig-types" }

@@ -3,7 +3,7 @@ name = "rig-hands"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-description = "Hands system for OpenFang — curated autonomous capability packages"
+description = "Hands system for Rig — curated autonomous capability packages"
 
 [dependencies]
 rig-types = { path = "../rig-types" }

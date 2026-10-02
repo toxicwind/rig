@@ -4,7 +4,7 @@
 
 The fork lives at `github.com/toxicwind/rig` and identifies as **Rig** in
 planning docs (e.g. `docs/fleet-scheduling.md`). The tree was forked from
-upstream OpenFang (RightNow-AI/rig) with zero rename applied: every
+upstream Rig (RightNow-AI/rig) with zero rename applied: every
 crate is still `rig-*`, the binary is `rig`, config lives at
 `~/.rig/`, env vars use the `RIG_` prefix.
 
@@ -39,7 +39,7 @@ yote ecosystem depends on every one of them (Agent2 pilot runs
 - config paths (`~/.rig/`, `rig.toml`)
 - env var prefix (`RIG_*`)
 - daemon API base paths (`/api/...` are path-stable, no product prefix — OK)
-- `KernelError::OpenFang`, `OpenFangKernel` type names (internal)
+- `KernelError::Rig`, `RigKernel` type names (internal)
 
 Cutover plan (when Chris approves): introduce `rig` binary as a rename shim
 first (same argv surface), migrate config path with symlink
@@ -50,7 +50,7 @@ Do NOT attempt mid-pilot.
 
 - Historical issue links in code comments (`Closes #1051` etc. pointing at
   upstream issues) — they document provenance, not live references.
-- `docs/*.svg` benchmark badges mentioning OpenFang — regenerated on next
+- `docs/*.svg` benchmark badges mentioning Rig — regenerated on next
   benchmark run.
 - `rig.sh` doc-site links in prose — upstream docs are still the
   reference until fork docs exist.
