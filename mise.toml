@@ -1,0 +1,19 @@
+# Build tasks for the Rig workspace.
+# The build task is remote-cached through mbx-cache (:25148):
+# first run is a miss, later runs with unchanged sources restore
+# target/debug/rig from cache instead of rebuilding.
+
+[settings]
+experimental = true
+task.cache.remote_url = "http://127.0.0.1:25148"
+task.cache.remote_namespace = "rig"
+task.cache.remote_mode = "read-write"
+
+[task_config.cache]
+enabled = true
+
+[tasks.build]
+description = "Build the rig binary (post-rename successor of the openfang binary)"
+run = "cargo build -p rig-cli"
+sources = ["Cargo.toml", "Cargo.lock", "crates/**/Cargo.toml", "crates/**/src/**/*.rs"]
+outputs = ["target/debug/rig"]
