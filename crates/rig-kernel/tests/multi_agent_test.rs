@@ -2,7 +2,7 @@
 //!
 //! Run with: GROQ_API_KEY=gsk_... cargo test -p rig-kernel --test multi_agent_test -- --nocapture
 
-use rig_kernel::OpenFangKernel;
+use rig_kernel::RigKernel;
 use rig_types::agent::AgentManifest;
 use rig_types::config::{DefaultModelConfig, KernelConfig};
 
@@ -36,7 +36,7 @@ async fn test_six_agent_fleet() {
         return;
     }
 
-    let kernel = OpenFangKernel::boot_with_config(test_config()).expect("Kernel should boot");
+    let kernel = RigKernel::boot_with_config(test_config()).expect("Kernel should boot");
 
     // Define all 6 agents with different roles and models
     let agents = vec![

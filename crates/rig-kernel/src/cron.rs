@@ -1,4 +1,4 @@
-//! Cron job scheduler engine for the OpenFang kernel.
+//! Cron job scheduler engine for the Rig kernel.
 //!
 //! Manages scheduled jobs (recurring and one-shot) across all agents.
 //! This is separate from `scheduler.rs` which handles agent resource tracking.
@@ -10,7 +10,7 @@
 use chrono::{Duration, Utc};
 use dashmap::DashMap;
 use rig_types::agent::AgentId;
-use rig_types::error::{OpenFangError, OpenFangResult};
+use rig_types::error::{RigError, RigResult};
 use rig_types::scheduler::{CronJob, CronJobId, CronSchedule};
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
@@ -84,7 +84,7 @@ pub struct CronScheduler {
 impl CronScheduler {
     /// Create a new scheduler.
     ///
-    /// `home_dir` is the OpenFang data directory; jobs are persisted to
+    /// `home_dir` is the Rig data directory; jobs are persisted to
     /// `<home_dir>/cron_jobs.json`. `max_total_jobs` caps the total number
     /// of jobs across all agents.
     pub fn new(home_dir: &Path, max_total_jobs: usize) -> Self {
@@ -106,14 +106,14 @@ impl CronScheduler {
     ///
     /// Returns the number of jobs loaded. If the persistence file does not
     /// exist, returns `Ok(0)` without error.
-    pub fn load(&self) -> OpenFangResult<usize> {
+    pub fn load(&self) -> RigResult<usize> {
         if !self.persist_path.exists() {
             return Ok(0);
         }
         let data = std::fs::read_to_string(&self.persist_path)
-            .map_err(|e| OpenFangError::Internal(format!("Failed to read cron jobs: {e}")))?;
+            .map_err(|e| RigError::Internal(format!("Failed to read cron jobs: {e}")))?;
         let metas: Vec<JobMeta> = serde_json::from_str(&data)
-            .map_err(|e| OpenFangError::Internal(format!("Failed to parse cron jobs: {e}")))?;
+            .map_err(|e| RigError::Internal(format!("Failed to parse cron jobs: {e}")))?;
         let count = metas.len();
         for meta in metas {
             self.jobs.insert(meta.job.id, meta);
@@ -123,16 +123,16 @@ impl CronScheduler {
     }
 
     /// Persist all jobs to disk via atomic write (write to `.tmp`, then rename).
-    pub fn persist(&self) -> OpenFangResult<()> {
+    pub fn persist(&self) -> RigResult<()> {
         let metas: Vec<JobMeta> = self.jobs.iter().map(|r| r.value().clone()).collect();
         let data = serde_json::to_string_pretty(&metas)
-            .map_err(|e| OpenFangError::Internal(format!("Failed to serialize cron jobs: {e}")))?;
+            .map_err(|e| RigError::Internal(format!("Failed to serialize cron jobs: {e}")))?;
         let tmp_path = self.persist_path.with_extension("json.tmp");
         std::fs::write(&tmp_path, data.as_bytes()).map_err(|e| {
-            OpenFangError::Internal(format!("Failed to write cron jobs temp file: {e}"))
+            RigError::Internal(format!("Failed to write cron jobs temp file: {e}"))
         })?;
         std::fs::rename(&tmp_path, &self.persist_path).map_err(|e| {
-            OpenFangError::Internal(format!("Failed to rename cron jobs file: {e}"))
+            RigError::Internal(format!("Failed to rename cron jobs file: {e}"))
         })?;
         debug!(count = metas.len(), "Persisted cron jobs");
         Ok(())
@@ -145,11 +145,11 @@ impl CronScheduler {
     ///
     /// `one_shot` controls whether the job is removed after a single
     /// successful execution.
-    pub fn add_job(&self, mut job: CronJob, one_shot: bool) -> OpenFangResult<CronJobId> {
+    pub fn add_job(&self, mut job: CronJob, one_shot: bool) -> RigResult<CronJobId> {
         // Global limit
         let max_jobs = self.max_total_jobs.load(Ordering::Relaxed);
         if self.jobs.len() >= max_jobs {
-            return Err(OpenFangError::Internal(format!(
+            return Err(RigError::Internal(format!(
                 "Global cron job limit reached ({})",
                 max_jobs
             )));
@@ -164,7 +164,7 @@ impl CronScheduler {
 
         // CronJob.validate returns Result<(), String>
         job.validate(agent_count)
-            .map_err(OpenFangError::InvalidInput)?;
+            .map_err(RigError::InvalidInput)?;
 
         // Compute initial next_run
         job.next_run = Some(compute_next_run(&job.schedule));
@@ -175,16 +175,16 @@ impl CronScheduler {
     }
 
     /// Remove a job by ID. Returns the removed `CronJob`.
-    pub fn remove_job(&self, id: CronJobId) -> OpenFangResult<CronJob> {
+    pub fn remove_job(&self, id: CronJobId) -> RigResult<CronJob> {
         self.jobs
             .remove(&id)
             .map(|(_, meta)| meta.job)
-            .ok_or_else(|| OpenFangError::Internal(format!("Cron job {id} not found")))
+            .ok_or_else(|| RigError::Internal(format!("Cron job {id} not found")))
     }
 
     /// Enable or disable a job. Re-enabling resets errors and recomputes
     /// `next_run`.
-    pub fn set_enabled(&self, id: CronJobId, enabled: bool) -> OpenFangResult<()> {
+    pub fn set_enabled(&self, id: CronJobId, enabled: bool) -> RigResult<()> {
         match self.jobs.get_mut(&id) {
             Some(mut meta) => {
                 meta.job.enabled = enabled;
@@ -194,7 +194,7 @@ impl CronScheduler {
                 }
                 Ok(())
             }
-            None => Err(OpenFangError::Internal(format!("Cron job {id} not found"))),
+            None => Err(RigError::Internal(format!("Cron job {id} not found"))),
         }
     }
 
@@ -207,13 +207,13 @@ impl CronScheduler {
         &self,
         id: CronJobId,
         targets: Vec<rig_types::scheduler::CronDeliveryTarget>,
-    ) -> OpenFangResult<()> {
+    ) -> RigResult<()> {
         match self.jobs.get_mut(&id) {
             Some(mut meta) => {
                 meta.job.delivery_targets = targets;
                 Ok(())
             }
-            None => Err(OpenFangError::Internal(format!("Cron job {id} not found"))),
+            None => Err(RigError::Internal(format!("Cron job {id} not found"))),
         }
     }
 

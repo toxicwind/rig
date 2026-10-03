@@ -1,4 +1,4 @@
-//! Discord Gateway adapter for the OpenFang channel bridge.
+//! Discord Gateway adapter for the Rig channel bridge.
 //!
 //! Uses Discord Gateway WebSocket (v10) for receiving messages and the REST API
 //! for sending responses. No external Discord crate — just `tokio-tungstenite` + `reqwest`.

@@ -1,4 +1,4 @@
-// OpenFang Setup Wizard — First-run guided setup (Provider + Agent + Channel)
+// Rig Setup Wizard — First-run guided setup (Provider + Agent + Channel)
 'use strict';
 
 /** Escape a string for use inside TOML triple-quoted strings ("""\n...\n"""). */
@@ -218,7 +218,7 @@ function wizardPage() {
       this.tryItMessages.push({ role: 'user', text: text });
       this.tryItSending = true;
       try {
-        var res = await OpenFangAPI.post('/api/agents/' + this.createdAgent.id + '/message', { message: text });
+        var res = await RigAPI.post('/api/agents/' + this.createdAgent.id + '/message', { message: text });
         this.tryItMessages.push({ role: 'agent', text: res.response || '(no response)' });
         localStorage.setItem('of-first-msg', 'true');
       } catch(e) {
@@ -356,7 +356,7 @@ function wizardPage() {
 
     async loadProviders() {
       try {
-        var data = await OpenFangAPI.get('/api/providers');
+        var data = await RigAPI.get('/api/providers');
         this.providers = data.providers || [];
       } catch(e) { this.providers = []; }
     },
@@ -418,21 +418,21 @@ function wizardPage() {
       if (!provider) return;
       var key = this.apiKeyInput.trim();
       if (!key) {
-        OpenFangToast.error(window.i18n ? window.i18n.t('wizard.enter_api_key') : 'Please enter an API key');
+        RigToast.error(window.i18n ? window.i18n.t('wizard.enter_api_key') : 'Please enter an API key');
         return;
       }
       this.savingKey = true;
       try {
-        await OpenFangAPI.post('/api/providers/' + encodeURIComponent(provider.id) + '/key', { key: key });
+        await RigAPI.post('/api/providers/' + encodeURIComponent(provider.id) + '/key', { key: key });
         this.apiKeyInput = '';
         this.keySaved = true;
         this.setupSummary.provider = provider.display_name;
-        OpenFangToast.success((window.i18n ? window.i18n.t('wizard.api_key_saved') : 'API key saved for') + ' ' + provider.display_name);
+        RigToast.success((window.i18n ? window.i18n.t('wizard.api_key_saved') : 'API key saved for') + ' ' + provider.display_name);
         await this.loadProviders();
         // Auto-test after saving
         await this.testKey();
       } catch(e) {
-        OpenFangToast.error((window.i18n ? window.i18n.t('wizard.failed_save_key') : 'Failed to save key:') + ' ' + e.message);
+        RigToast.error((window.i18n ? window.i18n.t('wizard.failed_save_key') : 'Failed to save key:') + ' ' + e.message);
       }
       this.savingKey = false;
     },
@@ -443,16 +443,16 @@ function wizardPage() {
       this.testingProvider = true;
       this.testResult = null;
       try {
-        var result = await OpenFangAPI.post('/api/providers/' + encodeURIComponent(provider.id) + '/test', {});
+        var result = await RigAPI.post('/api/providers/' + encodeURIComponent(provider.id) + '/test', {});
         this.testResult = result;
         if (result.status === 'ok') {
-          OpenFangToast.success(provider.display_name + ' ' + (window.i18n ? window.i18n.t('wizard.connected') : 'connected') + ' (' + (result.latency_ms || '?') + 'ms)');
+          RigToast.success(provider.display_name + ' ' + (window.i18n ? window.i18n.t('wizard.connected') : 'connected') + ' (' + (result.latency_ms || '?') + 'ms)');
         } else {
-          OpenFangToast.error(provider.display_name + ': ' + (result.error || (window.i18n ? window.i18n.t('wizard.connection_failed') : 'Connection failed')));
+          RigToast.error(provider.display_name + ': ' + (result.error || (window.i18n ? window.i18n.t('wizard.connection_failed') : 'Connection failed')));
         }
       } catch(e) {
         this.testResult = { status: 'error', error: e.message };
-        OpenFangToast.error((window.i18n ? window.i18n.t('wizard.test_failed') : 'Test failed:') + ' ' + e.message);
+        RigToast.error((window.i18n ? window.i18n.t('wizard.test_failed') : 'Test failed:') + ' ' + e.message);
       }
       this.testingProvider = false;
     },
@@ -461,20 +461,20 @@ function wizardPage() {
       this.testingProvider = true;
       this.testResult = null;
       try {
-        var result = await OpenFangAPI.post('/api/providers/claude-code/test', {});
+        var result = await RigAPI.post('/api/providers/claude-code/test', {});
         this.testResult = result;
         if (result.status === 'ok') {
           this.claudeCodeDetected = true;
           this.keySaved = true;
           this.setupSummary.provider = 'Claude Code';
-          OpenFangToast.success('Claude Code detected (' + (result.latency_ms || '?') + 'ms)');
+          RigToast.success('Claude Code detected (' + (result.latency_ms || '?') + 'ms)');
         } else {
           this.testResult = { status: 'error', error: 'Claude Code CLI not detected' };
-          OpenFangToast.error('Claude Code CLI not detected. Make sure you\'ve run: npm install -g @anthropic-ai/claude-code && claude auth');
+          RigToast.error('Claude Code CLI not detected. Make sure you\'ve run: npm install -g @anthropic-ai/claude-code && claude auth');
         }
       } catch(e) {
         this.testResult = { status: 'error', error: e.message };
-        OpenFangToast.error('Claude Code CLI not detected. Make sure you\'ve run: npm install -g @anthropic-ai/claude-code && claude auth');
+        RigToast.error('Claude Code CLI not detected. Make sure you\'ve run: npm install -g @anthropic-ai/claude-code && claude auth');
       }
       this.testingProvider = false;
     },
@@ -494,7 +494,7 @@ function wizardPage() {
       if (!tpl) return;
       var name = this.agentName.trim();
       if (!name) {
-        OpenFangToast.error(window.i18n ? window.i18n.t('wizard.enter_agent_name') : 'Please enter a name for your agent');
+        RigToast.error(window.i18n ? window.i18n.t('wizard.enter_agent_name') : 'Please enter a name for your agent');
         return;
       }
 
@@ -517,17 +517,17 @@ function wizardPage() {
 
       this.creatingAgent = true;
       try {
-        var res = await OpenFangAPI.post('/api/agents', { manifest_toml: toml });
+        var res = await RigAPI.post('/api/agents', { manifest_toml: toml });
         if (res.agent_id) {
           this.createdAgent = { id: res.agent_id, name: res.name || name };
           this.setupSummary.agent = res.name || name;
-          OpenFangToast.success((window.i18n ? window.i18n.t('wizard.agent_created') : 'Agent') + ' "' + (res.name || name) + '" ' + (window.i18n ? window.i18n.t('wizard.agent_created_suffix') || 'created' : 'created'));
+          RigToast.success((window.i18n ? window.i18n.t('wizard.agent_created') : 'Agent') + ' "' + (res.name || name) + '" ' + (window.i18n ? window.i18n.t('wizard.agent_created_suffix') || 'created' : 'created'));
           await Alpine.store('app').refreshAgents();
         } else {
-          OpenFangToast.error((window.i18n ? window.i18n.t('wizard.failed_create_agent') : 'Failed:') + ' ' + (res.error || 'Unknown error'));
+          RigToast.error((window.i18n ? window.i18n.t('wizard.failed_create_agent') : 'Failed:') + ' ' + (res.error || 'Unknown error'));
         }
       } catch(e) {
-        OpenFangToast.error((window.i18n ? window.i18n.t('wizard.failed_create_agent') : 'Failed to create agent:') + ' ' + e.message);
+        RigToast.error((window.i18n ? window.i18n.t('wizard.failed_create_agent') : 'Failed to create agent:') + ' ' + e.message);
       }
       this.creatingAgent = false;
     },
@@ -574,7 +574,7 @@ function wizardPage() {
       if (!ch) return;
       var token = this.channelToken.trim();
       if (!token) {
-        OpenFangToast.error((window.i18n ? window.i18n.t('wizard.enter_token') : 'Please enter the') + ' ' + ch.token_label);
+        RigToast.error((window.i18n ? window.i18n.t('wizard.enter_token') : 'Please enter the') + ' ' + ch.token_label);
         return;
       }
       this.configuringChannel = true;
@@ -582,12 +582,12 @@ function wizardPage() {
         var fields = {};
         fields[ch.token_env.toLowerCase()] = token;
         fields.token = token;
-        await OpenFangAPI.post('/api/channels/' + ch.name + '/configure', { fields: fields });
+        await RigAPI.post('/api/channels/' + ch.name + '/configure', { fields: fields });
         this.channelConfigured = true;
         this.setupSummary.channel = ch.display_name;
-        OpenFangToast.success(ch.display_name + ' ' + (window.i18n ? window.i18n.t('wizard.channel_configured') : 'configured and activated.'));
+        RigToast.success(ch.display_name + ' ' + (window.i18n ? window.i18n.t('wizard.channel_configured') : 'configured and activated.'));
       } catch(e) {
-        OpenFangToast.error((window.i18n ? window.i18n.t('wizard.failed_configure') : 'Failed:') + ' ' + (e.message || 'Unknown error'));
+        RigToast.error((window.i18n ? window.i18n.t('wizard.failed_configure') : 'Failed:') + ' ' + (e.message || 'Unknown error'));
       }
       this.configuringChannel = false;
     },

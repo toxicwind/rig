@@ -664,7 +664,7 @@ mod tests {
         )
         .expect("echostr should decrypt");
 
-        assert_eq!(plain, "rig-wecom-check");
+        assert_eq!(plain, "openfang-wecom-check"); // fixture plaintext is baked into the ciphertext above — not branding
     }
 
     #[test]

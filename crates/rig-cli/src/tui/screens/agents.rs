@@ -244,7 +244,7 @@ impl AgentSelectState {
     }
 
     /// Load in-process agents from the kernel.
-    pub fn load_inprocess_agents(&mut self, kernel: &rig_kernel::OpenFangKernel) {
+    pub fn load_inprocess_agents(&mut self, kernel: &rig_kernel::RigKernel) {
         self.inprocess_agents.clear();
         for entry in kernel.registry.list() {
             self.inprocess_agents.push(InProcessAgent {

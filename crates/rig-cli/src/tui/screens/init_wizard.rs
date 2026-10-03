@@ -1357,7 +1357,7 @@ complex_threshold = 500
     };
 
     let config = format!(
-        r#"# OpenFang Agent OS configuration
+        r#"# Rig Agent OS configuration
 # See https://github.com/toxicwind/rig for documentation
 
 api_listen = "127.0.0.1:4200"
@@ -1446,10 +1446,10 @@ fn draw(f: &mut Frame, area: Rect, state: &mut State) {
     ])
     .split(content);
 
-    // Header: "OpenFang Init  Step X of 7"
+    // Header: "Rig Init  Step X of 7"
     let header = Line::from(vec![
         Span::styled(
-            "OpenFang",
+            "Rig",
             Style::default()
                 .fg(theme::ACCENT)
                 .add_modifier(Modifier::BOLD),
@@ -2609,7 +2609,7 @@ fn draw_complete(f: &mut Frame, area: Rect, state: &mut State) {
     // ── Question ──
     f.render_widget(
         Paragraph::new(Line::from(vec![Span::styled(
-            "  How do you want to use OpenFang?",
+            "  How do you want to use Rig?",
             Style::default()
                 .fg(theme::ACCENT)
                 .add_modifier(Modifier::BOLD),

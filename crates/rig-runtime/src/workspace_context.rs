@@ -1,7 +1,7 @@
 //! Workspace context auto-detection.
 //!
 //! Scans the workspace root for project type indicators (Cargo.toml, package.json, etc.),
-//! context files (AGENTS.md, SOUL.md, TOOLS.md, IDENTITY.md, HEARTBEAT.md), and OpenFang
+//! context files (AGENTS.md, SOUL.md, TOOLS.md, IDENTITY.md, HEARTBEAT.md), and Rig
 //! state files. Provides mtime-cached file reads to avoid redundant I/O.
 
 use serde::{Deserialize, Serialize};

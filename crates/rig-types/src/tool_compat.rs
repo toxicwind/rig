@@ -1,12 +1,12 @@
-//! Shared tool name mappings between OpenClaw and OpenFang.
+//! Shared tool name mappings between OpenClaw and Rig.
 //!
 //! These mappings are used by both the migration engine and the skill system
-//! to normalize OpenClaw tool names into OpenFang equivalents.
+//! to normalize OpenClaw tool names into Rig equivalents.
 
-/// Map an OpenClaw tool name to its OpenFang equivalent.
+/// Map an OpenClaw tool name to its Rig equivalent.
 ///
 /// Returns `None` if the name has no known mapping (may already be
-/// an OpenFang tool name — check with [`is_known_rig_tool`]).
+/// an Rig tool name — check with [`is_known_rig_tool`]).
 pub fn map_tool_name(openclaw_name: &str) -> Option<&'static str> {
     match openclaw_name {
         // Claude-style tool names (capitalized)
@@ -40,9 +40,9 @@ pub fn map_tool_name(openclaw_name: &str) -> Option<&'static str> {
     }
 }
 
-/// Normalize a tool name to its canonical OpenFang form.
+/// Normalize a tool name to its canonical Rig form.
 ///
-/// If the name is already a known OpenFang tool, returns it as-is.
+/// If the name is already a known Rig tool, returns it as-is.
 /// Otherwise, tries to map it through [`map_tool_name`].
 /// Returns the original name if no mapping is found.
 pub fn normalize_tool_name(name: &str) -> &str {
@@ -52,7 +52,7 @@ pub fn normalize_tool_name(name: &str) -> &str {
     map_tool_name(name).unwrap_or(name)
 }
 
-/// Check if a tool name is a known OpenFang built-in tool.
+/// Check if a tool name is a known Rig built-in tool.
 pub fn is_known_rig_tool(name: &str) -> bool {
     matches!(
         name,
@@ -166,7 +166,7 @@ mod tests {
 
     #[test]
     fn test_normalize_tool_name() {
-        // Known OpenFang tools pass through unchanged
+        // Known Rig tools pass through unchanged
         assert_eq!(normalize_tool_name("file_read"), "file_read");
         assert_eq!(normalize_tool_name("file_write"), "file_write");
         assert_eq!(normalize_tool_name("shell_exec"), "shell_exec");

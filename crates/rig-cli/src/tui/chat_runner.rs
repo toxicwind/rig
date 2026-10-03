@@ -7,7 +7,7 @@
 use super::event::{self, AppEvent};
 use super::screens::chat::{self, ChatAction, ChatState, Role};
 use super::theme;
-use rig_kernel::OpenFangKernel;
+use rig_kernel::RigKernel;
 use rig_runtime::llm_driver::StreamEvent;
 use rig_types::agent::AgentId;
 use ratatui::layout::{Alignment, Constraint, Layout, Rect};
@@ -22,7 +22,7 @@ use std::time::Duration;
 
 enum Backend {
     Daemon { base_url: String },
-    InProcess { kernel: Arc<OpenFangKernel> },
+    InProcess { kernel: Arc<RigKernel> },
     None,
 }
 
@@ -190,7 +190,7 @@ impl StandaloneChat {
 
     // ── Kernel lifecycle ─────────────────────────────────────────────────────
 
-    fn handle_kernel_ready(&mut self, kernel: Arc<OpenFangKernel>) {
+    fn handle_kernel_ready(&mut self, kernel: Arc<RigKernel>) {
         self.booting = false;
         self.boot_error = None;
         self.backend = Backend::InProcess { kernel };

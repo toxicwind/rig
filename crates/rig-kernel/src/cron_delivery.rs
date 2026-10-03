@@ -6,7 +6,7 @@
 //! concurrently. Failures in one target do not abort delivery to the
 //! others — every target's outcome is returned in a [`DeliveryResult`].
 //!
-//! This is the OpenFang port of the Hermes Agent multi-destination cron
+//! This is the Rig port of the Hermes Agent multi-destination cron
 //! pattern: one job → N destinations (channels / webhooks / files / email).
 
 use futures::future::join_all;

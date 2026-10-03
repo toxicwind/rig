@@ -229,7 +229,7 @@ pub struct ClawHubInstallResult {
     pub slug: String,
     /// Security warnings from the scan pipeline.
     pub warnings: Vec<SkillWarning>,
-    /// Tool name translations applied (OpenClaw → OpenFang).
+    /// Tool name translations applied (OpenClaw → Rig).
     pub tool_translations: Vec<(String, String)>,
     /// Whether this is a prompt-only skill.
     pub is_prompt_only: bool,
@@ -309,7 +309,7 @@ impl ClawHubClient {
             let result = self
                 .client
                 .get(url)
-                .header("User-Agent", "OpenFang/0.1")
+                .header("User-Agent", "Rig/0.1")
                 .send()
                 .await;
 
@@ -514,7 +514,7 @@ impl ClawHubClient {
     /// Security pipeline:
     /// 1. Download skill zip and compute SHA256
     /// 2. Detect format (SKILL.md vs package.json)
-    /// 3. Convert to OpenFang manifest
+    /// 3. Convert to Rig manifest
     /// 4. Run manifest security scan
     /// 5. If prompt-only: run prompt injection scan
     /// 6. Check binary dependencies

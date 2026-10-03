@@ -35,7 +35,7 @@ pub struct ChannelUser {
     pub platform_id: String,
     /// Human-readable display name.
     pub display_name: String,
-    /// Optional mapping to an OpenFang user identity.
+    /// Optional mapping to an Rig user identity.
     pub rig_user: Option<String>,
 }
 
@@ -286,7 +286,7 @@ pub use rig_types::config::{DmPolicy, GroupPolicy, OutputFormat};
 
 /// Trait that every channel adapter must implement.
 ///
-/// A channel adapter bridges a messaging platform to the OpenFang kernel by converting
+/// A channel adapter bridges a messaging platform to the Rig kernel by converting
 /// platform-specific messages into `ChannelMessage` events and sending responses back.
 #[async_trait]
 pub trait ChannelAdapter: Send + Sync {

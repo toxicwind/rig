@@ -228,7 +228,7 @@ fn parse_gemini_error(body: &str) -> String {
 
 // ── Message conversion ─────────────────────────────────────────────────
 
-/// Convert OpenFang messages into Gemini content entries.
+/// Convert Rig messages into Gemini content entries.
 fn convert_messages(
     messages: &[Message],
     system: &Option<String>,

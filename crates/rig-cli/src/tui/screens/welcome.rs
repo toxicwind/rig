@@ -135,7 +135,7 @@ impl WelcomeState {
         });
         self.menu_items.push(MenuItem {
             label: "Exit",
-            hint: "quit OpenFang",
+            hint: "quit Rig",
             action: WelcomeAction::Exit,
         });
         self.menu.select(Some(0));

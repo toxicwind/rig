@@ -1,4 +1,4 @@
-// OpenFang App — Alpine.js init, hash router, global store
+// Rig App — Alpine.js init, hash router, global store
 'use strict';
 
 // Marked.js configuration
@@ -123,7 +123,7 @@ function toolIcon(toolName) {
 document.addEventListener('alpine:init', function() {
   // Restore saved API key on load
   var savedKey = localStorage.getItem('rig-api-key');
-  if (savedKey) OpenFangAPI.setAuthToken(savedKey);
+  if (savedKey) RigAPI.setAuthToken(savedKey);
 
   Alpine.store('app', {
     agents: [],
@@ -150,7 +150,7 @@ document.addEventListener('alpine:init', function() {
 
     async refreshAgents() {
       try {
-        var agents = await OpenFangAPI.get('/api/agents');
+        var agents = await RigAPI.get('/api/agents');
         this.agents = Array.isArray(agents) ? agents : [];
         this.agentCount = this.agents.length;
       } catch(e) { /* silent */ }
@@ -158,15 +158,15 @@ document.addEventListener('alpine:init', function() {
 
     async refreshApprovals() {
       try {
-        var data = await OpenFangAPI.get('/api/approvals');
+        var data = await RigAPI.get('/api/approvals');
         var approvals = Array.isArray(data) ? data : (data.approvals || []);
         var pending = approvals.filter(function(a) { return a.status === 'pending'; });
         var signature = pending
           .map(function(a) { return a.id; })
           .sort()
           .join(',');
-        if (pending.length > 0 && signature !== this.lastPendingApprovalSignature && typeof OpenFangToast !== 'undefined') {
-          OpenFangToast.warn('An agent is waiting for approval. Open Approvals to review.');
+        if (pending.length > 0 && signature !== this.lastPendingApprovalSignature && typeof RigToast !== 'undefined') {
+          RigToast.warn('An agent is waiting for approval. Open Approvals to review.');
         }
         this.pendingApprovalCount = pending.length;
         this.lastPendingApprovalSignature = signature;
@@ -175,7 +175,7 @@ document.addEventListener('alpine:init', function() {
 
     async checkStatus() {
       try {
-        var s = await OpenFangAPI.get('/api/status');
+        var s = await RigAPI.get('/api/status');
         this.connected = true;
         this.booting = false;
         this.lastError = '';
@@ -184,14 +184,14 @@ document.addEventListener('alpine:init', function() {
       } catch(e) {
         this.connected = false;
         this.lastError = e.message || 'Unknown error';
-        console.warn('[OpenFang] Status check failed:', e.message);
+        console.warn('[Rig] Status check failed:', e.message);
       }
     },
 
     async checkOnboarding() {
       if (localStorage.getItem('rig-onboarded')) return;
       try {
-        var config = await OpenFangAPI.get('/api/config');
+        var config = await RigAPI.get('/api/config');
         var apiKey = config && config.api_key;
         var noKey = !apiKey || apiKey === 'not set' || apiKey === '';
         if (noKey && this.agentCount === 0) {
@@ -211,7 +211,7 @@ document.addEventListener('alpine:init', function() {
     async checkAuth() {
       try {
         // First check if session-based auth is configured
-        var authInfo = await OpenFangAPI.get('/api/auth/check');
+        var authInfo = await RigAPI.get('/api/auth/check');
         if (authInfo.mode === 'none') {
           // No session auth — fall back to API key detection
           this.authMode = 'apikey';
@@ -231,13 +231,13 @@ document.addEventListener('alpine:init', function() {
 
       // API key mode detection
       try {
-        await OpenFangAPI.get('/api/tools');
+        await RigAPI.get('/api/tools');
         this.showAuthPrompt = false;
       } catch(e) {
         if (e.message && (e.message.indexOf('Not authorized') >= 0 || e.message.indexOf('401') >= 0 || e.message.indexOf('Missing Authorization') >= 0 || e.message.indexOf('Unauthorized') >= 0)) {
           var saved = localStorage.getItem('rig-api-key');
           if (saved) {
-            OpenFangAPI.setAuthToken('');
+            RigAPI.setAuthToken('');
             localStorage.removeItem('rig-api-key');
           }
           this.showAuthPrompt = true;
@@ -247,7 +247,7 @@ document.addEventListener('alpine:init', function() {
 
     submitApiKey(key) {
       if (!key || !key.trim()) return;
-      OpenFangAPI.setAuthToken(key.trim());
+      RigAPI.setAuthToken(key.trim());
       localStorage.setItem('rig-api-key', key.trim());
       this.showAuthPrompt = false;
       this.refreshAgents();
@@ -255,29 +255,29 @@ document.addEventListener('alpine:init', function() {
 
     async sessionLogin(username, password) {
       try {
-        var result = await OpenFangAPI.post('/api/auth/login', { username: username, password: password });
+        var result = await RigAPI.post('/api/auth/login', { username: username, password: password });
         if (result.status === 'ok') {
           this.sessionUser = result.username;
           this.showAuthPrompt = false;
           this.refreshAgents();
         } else {
-          OpenFangToast.error(result.error || 'Login failed');
+          RigToast.error(result.error || 'Login failed');
         }
       } catch(e) {
-        OpenFangToast.error(e.message || 'Login failed');
+        RigToast.error(e.message || 'Login failed');
       }
     },
 
     async sessionLogout() {
       try {
-        await OpenFangAPI.post('/api/auth/logout');
+        await RigAPI.post('/api/auth/logout');
       } catch(e) { /* ignore */ }
       this.sessionUser = null;
       this.showAuthPrompt = true;
     },
 
     clearApiKey() {
-      OpenFangAPI.setAuthToken('');
+      RigAPI.setAuthToken('');
       localStorage.removeItem('rig-api-key');
     }
   });
@@ -363,7 +363,7 @@ function app() {
       });
 
       // Connection state listener
-      OpenFangAPI.onConnectionChange(function(state) {
+      RigAPI.onConnectionChange(function(state) {
         Alpine.store('app').connectionState = state;
       });
 
@@ -412,7 +412,7 @@ function app() {
       this.connected = store.connected;
       this.version = store.version;
       this.agentCount = store.agentCount;
-      this.wsConnected = OpenFangAPI.isWsConnected();
+      this.wsConnected = RigAPI.isWsConnected();
     }
   };
 }

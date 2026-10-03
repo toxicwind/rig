@@ -98,7 +98,7 @@ pub struct CommandDef {
     pub requires_agent: bool,
 }
 
-/// Every slash command registered in OpenFang.
+/// Every slash command registered in Rig.
 ///
 /// Keep this list in sync with the three dispatch sites:
 ///   - `rig-cli/src/tui/mod.rs::handle_slash_command`

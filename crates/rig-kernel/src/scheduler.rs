@@ -2,7 +2,7 @@
 
 use dashmap::DashMap;
 use rig_types::agent::{AgentId, ResourceQuota};
-use rig_types::error::{OpenFangError, OpenFangResult};
+use rig_types::error::{RigError, RigResult};
 use rig_types::message::TokenUsage;
 use std::time::Instant;
 use tokio::task::JoinHandle;
@@ -75,7 +75,7 @@ impl AgentScheduler {
     }
 
     /// Check if an agent has exceeded its quota.
-    pub fn check_quota(&self, agent_id: AgentId) -> OpenFangResult<()> {
+    pub fn check_quota(&self, agent_id: AgentId) -> RigResult<()> {
         let quota = match self.quotas.get(&agent_id) {
             Some(q) => q.clone(),
             None => return Ok(()), // No quota = no limit
@@ -90,7 +90,7 @@ impl AgentScheduler {
 
         if quota.max_llm_tokens_per_hour > 0 && tracker.total_tokens > quota.max_llm_tokens_per_hour
         {
-            return Err(OpenFangError::QuotaExceeded(format!(
+            return Err(RigError::QuotaExceeded(format!(
                 "Token limit exceeded: {} / {}",
                 tracker.total_tokens, quota.max_llm_tokens_per_hour
             )));

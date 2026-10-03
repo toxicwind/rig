@@ -72,7 +72,7 @@ impl MigrationReport {
         let mode = if self.dry_run { " (Dry Run)" } else { "" };
 
         out.push_str(&format!(
-            "# Migration Report: {} -> OpenFang{}\n\n",
+            "# Migration Report: {} -> Rig{}\n\n",
             self.source, mode
         ));
 

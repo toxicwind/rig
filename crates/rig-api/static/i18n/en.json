@@ -1,5 +1,5 @@
 {
-  "app.name": "OpenFang",
+  "app.name": "Rig",
   "app.version": "v",
 
   "nav.chat": "Chat",
@@ -163,7 +163,7 @@
   "toasts.mcp_connected": "MCP Connected",
   "toasts.session_deleted": "Session deleted",
 
-  "overview.welcome": "Welcome to OpenFang",
+  "overview.welcome": "Welcome to Rig",
   "overview.getting_started": "Getting Started",
   "overview.setup_wizard": "Setup Wizard",
   "overview.steps_completed": "of 5 steps completed",
@@ -198,7 +198,7 @@
   "tooltips.ready": "ready",
   "tooltips.not_configured": "not configured",
 
-  "chat.placeholder": "Message OpenFang... (/ for commands)",
+  "chat.placeholder": "Message Rig... (/ for commands)",
   "chat.ready": "Ready",
   "chat.generating": "Generating...",
   "chat.queued": "queued",
@@ -226,7 +226,7 @@
   "chat.stop_agent_confirm": "Stop agent",
   "chat.agent_stopped": "Agent stopped",
   "chat.stop_agent_failed": "Failed to stop agent",
-  "chat.welcome_message": "**Welcome to OpenFang Chat!**\n\n- Type `/` to see available commands\n- `/help` shows all commands\n- `/think on` enables extended reasoning\n- `/context` shows context window usage\n- `/verbose off` hides tool details\n- `Ctrl+Shift+F` toggles focus mode\n- Drag & drop files to attach them\n- `Ctrl+/` opens the command palette",
+  "chat.welcome_message": "**Welcome to Rig Chat!**\n\n- Type `/` to see available commands\n- `/help` shows all commands\n- `/think on` enables extended reasoning\n- `/context` shows context window usage\n- `/verbose off` hides tool details\n- `Ctrl+Shift+F` toggles focus mode\n- Drag & drop files to attach them\n- `Ctrl+/` opens the command palette",
 
   "chat.slash.help": "Show available commands",
   "chat.slash.agents": "Switch to Agents page",

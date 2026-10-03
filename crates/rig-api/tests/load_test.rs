@@ -1,4 +1,4 @@
-//! Load & performance tests for the OpenFang API.
+//! Load & performance tests for the Rig API.
 //!
 //! Measures throughput under concurrent access: agent spawning, API endpoint
 //! latency, session management, and memory usage.
@@ -8,7 +8,7 @@
 use axum::Router;
 use rig_api::middleware;
 use rig_api::routes::{self, AppState};
-use rig_kernel::OpenFangKernel;
+use rig_kernel::RigKernel;
 use rig_types::config::{DefaultModelConfig, KernelConfig};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
@@ -47,7 +47,7 @@ async fn start_test_server() -> TestServer {
         ..KernelConfig::default()
     };
 
-    let kernel = OpenFangKernel::boot_with_config(config).expect("Kernel should boot");
+    let kernel = RigKernel::boot_with_config(config).expect("Kernel should boot");
     let kernel = Arc::new(kernel);
     kernel.set_self_handle();
 

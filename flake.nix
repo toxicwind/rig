@@ -1,5 +1,5 @@
 {
-  description = "The OpenFang Agent OS";
+  description = "The Rig Agent OS";
   inputs = {
     flake-parts.url = "github:hercules-ci/flake-parts";
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -56,11 +56,11 @@
         apps = {
           rig-cli = {
             program = "${self'.packages.rig-cli}/bin/rig";
-            meta.description = "CLI tool for the OpenFang Agent OS";
+            meta.description = "CLI tool for the Rig Agent OS";
           };
           rig-desktop = {
             program = "${self'.packages.rig-desktop}/bin/rig-desktop";
-            meta.description = "Native desktop application for the OpenFang Agent OS (Tauri 2.0)";
+            meta.description = "Native desktop application for the Rig Agent OS (Tauri 2.0)";
           };
           default = self'.apps.rig-cli;
         };

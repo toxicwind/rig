@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "OpenFang",
+  "productName": "Rig",
   "version": "0.6.9",
   "identifier": "ai.rig.desktop",
   "build": {},
@@ -33,7 +33,7 @@
     ],
     "category": "Productivity",
     "shortDescription": "Open-source Agent Operating System",
-    "longDescription": "OpenFang is an open-source Agent Operating System — run, orchestrate, and extend AI agents across every channel from your desktop.",
+    "longDescription": "Rig is an open-source Agent Operating System — run, orchestrate, and extend AI agents across every channel from your desktop.",
     "linux": {
       "deb": {
         "depends": []

@@ -678,7 +678,7 @@ fn ensure_object(v: &serde_json::Value) -> serde_json::Value {
     }
 }
 
-/// Convert an OpenFang Message to an Anthropic API message.
+/// Convert an Rig Message to an Anthropic API message.
 fn convert_message(msg: &Message) -> ApiMessage {
     let role = match msg.role {
         Role::User => "user",

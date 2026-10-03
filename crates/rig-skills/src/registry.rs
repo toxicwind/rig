@@ -230,7 +230,7 @@ impl SkillRegistry {
 
                             info!(
                                 skill = %converted.manifest.skill.name,
-                                "Auto-converting SKILL.md to OpenFang format"
+                                "Auto-converting SKILL.md to Rig format"
                             );
                             if let Err(e) =
                                 openclaw_compat::write_rig_manifest(&path, &converted.manifest)

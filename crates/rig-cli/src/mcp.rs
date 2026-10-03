@@ -1,4 +1,4 @@
-//! MCP (Model Context Protocol) server for OpenFang.
+//! MCP (Model Context Protocol) server for Rig.
 //!
 //! Exposes running agents as MCP tools over JSON-RPC 2.0 stdio.
 //! Each agent becomes a callable tool named `rig_agent_{name}`.
@@ -6,7 +6,7 @@
 //! Protocol: Content-Length framing over stdin/stdout.
 //! Connects to running daemon via HTTP, falls back to in-process kernel.
 
-use rig_kernel::OpenFangKernel;
+use rig_kernel::RigKernel;
 use serde_json::{json, Value};
 use std::io::{self, BufRead, Write};
 
@@ -17,7 +17,7 @@ enum McpBackend {
         client: reqwest::blocking::Client,
     },
     InProcess {
-        kernel: Box<OpenFangKernel>,
+        kernel: Box<RigKernel>,
         rt: tokio::runtime::Runtime,
     },
 }
@@ -145,7 +145,7 @@ fn create_backend(config: Option<std::path::PathBuf>) -> McpBackend {
     }
 
     // Fall back to in-process kernel
-    let kernel = match OpenFangKernel::boot(config.as_deref()) {
+    let kernel = match RigKernel::boot(config.as_deref()) {
         Ok(k) => k,
         Err(e) => {
             eprintln!("Failed to boot kernel for MCP: {e}");
@@ -258,7 +258,7 @@ fn handle_message(backend: &McpBackend, msg: &Value) -> Option<Value> {
                 .map(|(_, name, description)| {
                     let tool_name = format!("rig_agent_{}", name.replace('-', "_"));
                     let desc = if description.is_empty() {
-                        format!("Send a message to OpenFang agent '{name}'")
+                        format!("Send a message to Rig agent '{name}'")
                     } else {
                         description.clone()
                     };

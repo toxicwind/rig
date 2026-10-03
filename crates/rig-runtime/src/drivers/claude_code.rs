@@ -74,7 +74,7 @@ impl ClaudeCodeDriver {
             warn!(
                 "Claude Code driver: --dangerously-skip-permissions enabled. \
                  The CLI will not prompt for tool approvals. \
-                 OpenFang's own capability/RBAC system enforces access control."
+                 Rig's own capability/RBAC system enforces access control."
             );
         }
 
@@ -329,7 +329,7 @@ impl LlmDriver for ClaudeCodeDriver {
         Self::apply_env_filter(&mut cmd);
 
         // Inject HOME so the CLI can find its credentials (~/.claude/) when
-        // OpenFang runs as a service without a login shell.
+        // Rig runs as a service without a login shell.
         if let Some(home) = home_dir() {
             cmd.env("HOME", &home);
         }

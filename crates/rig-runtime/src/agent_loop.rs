@@ -18,7 +18,7 @@ use rig_memory::session::Session;
 use rig_memory::MemorySubstrate;
 use rig_skills::registry::SkillRegistry;
 use rig_types::agent::{AgentManifest, FallbackModel};
-use rig_types::error::{OpenFangError, OpenFangResult};
+use rig_types::error::{RigError, RigResult};
 use rig_types::memory::{Memory, MemoryFilter, MemorySource};
 use rig_types::message::{
     ContentBlock, Message, MessageContent, Role, StopReason, TokenUsage,
@@ -287,7 +287,7 @@ fn build_user_turn_message(user_message: &str, blocks: Option<Vec<ContentBlock>>
 
 /// Run the agent execution loop for a single user message.
 ///
-/// This is the core of OpenFang: it loads session context, recalls memories,
+/// This is the core of Rig: it loads session context, recalls memories,
 /// runs the LLM in a tool-use loop, and saves the updated session.
 #[allow(clippy::too_many_arguments)]
 pub async fn run_agent_loop(
@@ -312,7 +312,7 @@ pub async fn run_agent_loop(
     context_window_tokens: Option<usize>,
     process_manager: Option<&crate::process_manager::ProcessManager>,
     user_content_blocks: Option<Vec<ContentBlock>>,
-) -> OpenFangResult<AgentLoopResult> {
+) -> RigResult<AgentLoopResult> {
     info!(agent = %manifest.name, "Starting agent loop");
 
     // Extract hand-allowed env vars from manifest metadata (set by kernel for hand settings)
@@ -611,7 +611,7 @@ pub async fn run_agent_loop(
                     memory
                         .save_session_async(session)
                         .await
-                        .map_err(|e| OpenFangError::Memory(e.to_string()))?;
+                        .map_err(|e| RigError::Memory(e.to_string()))?;
                     return Ok(AgentLoopResult {
                         response: String::new(),
                         total_usage,
@@ -722,7 +722,7 @@ pub async fn run_agent_loop(
                 memory
                     .save_session_async(session)
                     .await
-                    .map_err(|e| OpenFangError::Memory(e.to_string()))?;
+                    .map_err(|e| RigError::Memory(e.to_string()))?;
 
                 // Remember this interaction (with embedding if available)
                 let interaction_text = format!(
@@ -865,7 +865,7 @@ pub async fn run_agent_loop(
                                 };
                                 let _ = hook_reg.fire(&ctx);
                             }
-                            return Err(OpenFangError::Internal(msg.clone()));
+                            return Err(RigError::Internal(msg.clone()));
                         }
                         LoopGuardVerdict::Block(msg) => {
                             warn!(tool = %tool_call.name, "Tool call blocked by loop guard");
@@ -1142,7 +1142,7 @@ pub async fn run_agent_loop(
         let _ = hook_reg.fire(&ctx);
     }
 
-    Err(OpenFangError::MaxIterationsExceeded(max_iterations))
+    Err(RigError::MaxIterationsExceeded(max_iterations))
 }
 
 /// Call an LLM driver with automatic retry on rate-limit and overload errors.
@@ -1158,7 +1158,7 @@ async fn call_with_retry(
     provider: Option<&str>,
     cooldown: Option<&ProviderCooldown>,
     fallback_models: &[FallbackModel],
-) -> OpenFangResult<crate::llm_driver::CompletionResponse> {
+) -> RigResult<crate::llm_driver::CompletionResponse> {
     // Check circuit breaker before calling
     if let (Some(provider), Some(cooldown)) = (provider, cooldown) {
         match cooldown.check(provider) {
@@ -1166,7 +1166,7 @@ async fn call_with_retry(
                 reason,
                 retry_after_secs,
             } => {
-                return Err(OpenFangError::LlmDriver(format!(
+                return Err(RigError::LlmDriver(format!(
                     "Provider '{provider}' is in cooldown ({reason}). Retry in {retry_after_secs}s."
                 )));
             }
@@ -1193,7 +1193,7 @@ async fn call_with_retry(
                     if let (Some(provider), Some(cooldown)) = (provider, cooldown) {
                         cooldown.record_failure(provider, false);
                     }
-                    return Err(OpenFangError::LlmDriver(format!(
+                    return Err(RigError::LlmDriver(format!(
                         "Rate limited after {} retries",
                         MAX_RETRIES
                     )));
@@ -1212,7 +1212,7 @@ async fn call_with_retry(
                     if let (Some(provider), Some(cooldown)) = (provider, cooldown) {
                         cooldown.record_failure(provider, false);
                     }
-                    return Err(OpenFangError::LlmDriver(format!(
+                    return Err(RigError::LlmDriver(format!(
                         "Model overloaded after {} retries",
                         MAX_RETRIES
                     )));
@@ -1320,12 +1320,12 @@ async fn call_with_retry(
                 } else {
                     classified.sanitized_message
                 };
-                return Err(OpenFangError::LlmDriver(user_msg));
+                return Err(RigError::LlmDriver(user_msg));
             }
         }
     }
 
-    Err(OpenFangError::LlmDriver(
+    Err(RigError::LlmDriver(
         last_error.unwrap_or_else(|| "Unknown error".to_string()),
     ))
 }
@@ -1343,7 +1343,7 @@ async fn stream_with_retry(
     provider: Option<&str>,
     cooldown: Option<&ProviderCooldown>,
     fallback_models: &[FallbackModel],
-) -> OpenFangResult<crate::llm_driver::CompletionResponse> {
+) -> RigResult<crate::llm_driver::CompletionResponse> {
     // Check circuit breaker before calling
     if let (Some(provider), Some(cooldown)) = (provider, cooldown) {
         match cooldown.check(provider) {
@@ -1351,7 +1351,7 @@ async fn stream_with_retry(
                 reason,
                 retry_after_secs,
             } => {
-                return Err(OpenFangError::LlmDriver(format!(
+                return Err(RigError::LlmDriver(format!(
                     "Provider '{provider}' is in cooldown ({reason}). Retry in {retry_after_secs}s."
                 )));
             }
@@ -1380,7 +1380,7 @@ async fn stream_with_retry(
                     if let (Some(provider), Some(cooldown)) = (provider, cooldown) {
                         cooldown.record_failure(provider, false);
                     }
-                    return Err(OpenFangError::LlmDriver(format!(
+                    return Err(RigError::LlmDriver(format!(
                         "Rate limited after {} retries",
                         MAX_RETRIES
                     )));
@@ -1399,7 +1399,7 @@ async fn stream_with_retry(
                     if let (Some(provider), Some(cooldown)) = (provider, cooldown) {
                         cooldown.record_failure(provider, false);
                     }
-                    return Err(OpenFangError::LlmDriver(format!(
+                    return Err(RigError::LlmDriver(format!(
                         "Model overloaded after {} retries",
                         MAX_RETRIES
                     )));
@@ -1501,12 +1501,12 @@ async fn stream_with_retry(
                 } else {
                     classified.sanitized_message
                 };
-                return Err(OpenFangError::LlmDriver(user_msg));
+                return Err(RigError::LlmDriver(user_msg));
             }
         }
     }
 
-    Err(OpenFangError::LlmDriver(
+    Err(RigError::LlmDriver(
         last_error.unwrap_or_else(|| "Unknown error".to_string()),
     ))
 }
@@ -1540,7 +1540,7 @@ pub async fn run_agent_loop_streaming(
     context_window_tokens: Option<usize>,
     process_manager: Option<&crate::process_manager::ProcessManager>,
     user_content_blocks: Option<Vec<ContentBlock>>,
-) -> OpenFangResult<AgentLoopResult> {
+) -> RigResult<AgentLoopResult> {
     info!(agent = %manifest.name, "Starting streaming agent loop");
 
     // Extract hand-allowed env vars from manifest metadata (set by kernel for hand settings)
@@ -1852,7 +1852,7 @@ pub async fn run_agent_loop_streaming(
                     memory
                         .save_session_async(session)
                         .await
-                        .map_err(|e| OpenFangError::Memory(e.to_string()))?;
+                        .map_err(|e| RigError::Memory(e.to_string()))?;
                     return Ok(AgentLoopResult {
                         response: String::new(),
                         total_usage,
@@ -1938,7 +1938,7 @@ pub async fn run_agent_loop_streaming(
                 memory
                     .save_session_async(session)
                     .await
-                    .map_err(|e| OpenFangError::Memory(e.to_string()))?;
+                    .map_err(|e| RigError::Memory(e.to_string()))?;
 
                 // Remember this interaction (with embedding if available)
                 let interaction_text = format!(
@@ -2074,7 +2074,7 @@ pub async fn run_agent_loop_streaming(
                                 };
                                 let _ = hook_reg.fire(&ctx);
                             }
-                            return Err(OpenFangError::Internal(msg.clone()));
+                            return Err(RigError::Internal(msg.clone()));
                         }
                         LoopGuardVerdict::Block(msg) => {
                             warn!(tool = %tool_call.name, "Tool call blocked by loop guard (streaming)");
@@ -2361,7 +2361,7 @@ pub async fn run_agent_loop_streaming(
         let _ = hook_reg.fire(&ctx);
     }
 
-    Err(OpenFangError::MaxIterationsExceeded(max_iterations))
+    Err(RigError::MaxIterationsExceeded(max_iterations))
 }
 
 /// Recover tool calls that LLMs output as plain text instead of the proper

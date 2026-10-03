@@ -126,7 +126,7 @@ pub async fn execute_tool(
     process_manager: Option<&crate::process_manager::ProcessManager>,
 ) -> ToolResult {
     // Normalize the tool name through compat mappings so LLM-hallucinated aliases
-    // (e.g. "fs-write" → "file_write") resolve to the canonical OpenFang name.
+    // (e.g. "fs-write" → "file_write") resolve to the canonical Rig name.
     let tool_name = normalize_tool_name(tool_name);
 
     // Capability enforcement: reject tools not in the allowed list
@@ -1174,7 +1174,7 @@ pub fn builtin_tool_definitions() -> Vec<ToolDefinition> {
             input_schema: serde_json::json!({
                 "type": "object",
                 "properties": {
-                    "url": { "type": "string", "description": "Base URL of the remote OpenFang/A2A-compatible agent (e.g., 'https://agent.example.com')" }
+                    "url": { "type": "string", "description": "Base URL of the remote Rig/A2A-compatible agent (e.g., 'https://agent.example.com')" }
                 },
                 "required": ["url"]
             }),
@@ -1592,7 +1592,7 @@ async fn tool_web_search_legacy(input: &serde_json::Value) -> Result<String, Str
     let resp = client
         .get("https://html.duckduckgo.com/html/")
         .query(&[("q", query)])
-        .header("User-Agent", "Mozilla/5.0 (compatible; OpenFangAgent/0.1)")
+        .header("User-Agent", "Mozilla/5.0 (compatible; RigAgent/0.1)")
         .send()
         .await
         .map_err(|e| format!("Search request failed: {e}"))?;
@@ -2930,7 +2930,7 @@ async fn tool_location_get() -> Result<String, String> {
     // Use ip-api.com (free, no API key, JSON response)
     let resp = client
         .get("https://ip-api.com/json/?fields=status,message,country,regionName,city,zip,lat,lon,timezone,isp,query")
-        .header("User-Agent", "OpenFang/0.1")
+        .header("User-Agent", "Rig/0.1")
         .send()
         .await
         .map_err(|e| format!("Location request failed: {e}"))?;
@@ -4781,7 +4781,7 @@ mod tests {
 
     // Minimal in-memory KernelHandle used to verify schedule_* tool wiring.
     // Records every cron_* call so tests can assert what the tool pushed into
-    // the kernel, without booting a real OpenFangKernel.
+    // the kernel, without booting a real RigKernel.
     struct FakeKernelHandle {
         created: std::sync::Mutex<Vec<(String, serde_json::Value)>>,
         cancelled: std::sync::Mutex<Vec<String>>,

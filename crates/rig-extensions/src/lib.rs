@@ -1,4 +1,4 @@
-//! OpenFang Extensions — one-click integration system.
+//! Rig Extensions — one-click integration system.
 //!
 //! This crate provides:
 //! - **Integration Registry**: 25 bundled MCP server templates (GitHub, Slack, etc.)

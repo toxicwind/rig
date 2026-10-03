@@ -1,12 +1,12 @@
 //! RBAC authentication and authorization for multi-user access control.
 //!
 //! The AuthManager maps platform user identities (Telegram ID, Discord ID, etc.)
-//! to OpenFang users with roles, then enforces permission checks on actions.
+//! to Rig users with roles, then enforces permission checks on actions.
 
 use dashmap::DashMap;
 use rig_types::agent::UserId;
 use rig_types::config::UserConfig;
-use rig_types::error::{OpenFangError, OpenFangResult};
+use rig_types::error::{RigError, RigResult};
 use std::fmt;
 use tracing::info;
 
@@ -86,7 +86,7 @@ impl Action {
 /// A resolved user identity.
 #[derive(Debug, Clone)]
 pub struct UserIdentity {
-    /// OpenFang user ID.
+    /// Rig user ID.
     pub id: UserId,
     /// Display name.
     pub name: String,
@@ -96,7 +96,7 @@ pub struct UserIdentity {
 
 /// RBAC authentication and authorization manager.
 pub struct AuthManager {
-    /// Known users by their OpenFang user ID.
+    /// Known users by their Rig user ID.
     users: DashMap<UserId, UserIdentity>,
     /// Channel binding index: "channel_type:platform_id" → UserId.
     channel_index: DashMap<String, UserId>,
@@ -140,7 +140,7 @@ impl AuthManager {
 
     /// Identify a user from a channel identity.
     ///
-    /// Returns the OpenFang UserId if a matching channel binding exists,
+    /// Returns the Rig UserId if a matching channel binding exists,
     /// or None for unrecognized users.
     pub fn identify(&self, channel_type: &str, platform_id: &str) -> Option<UserId> {
         let key = format!("{channel_type}:{platform_id}");
@@ -155,17 +155,17 @@ impl AuthManager {
     /// Authorize a user for an action.
     ///
     /// Returns Ok(()) if the user has sufficient permissions, or AuthDenied error.
-    pub fn authorize(&self, user_id: UserId, action: &Action) -> OpenFangResult<()> {
+    pub fn authorize(&self, user_id: UserId, action: &Action) -> RigResult<()> {
         let identity = self
             .users
             .get(&user_id)
-            .ok_or_else(|| OpenFangError::AuthDenied("Unknown user".to_string()))?;
+            .ok_or_else(|| RigError::AuthDenied("Unknown user".to_string()))?;
 
         let required = action.required_role();
         if identity.role >= required {
             Ok(())
         } else {
-            Err(OpenFangError::AuthDenied(format!(
+            Err(RigError::AuthDenied(format!(
                 "User '{}' (role: {}) lacks permission for {:?} (requires: {})",
                 identity.name, identity.role, action, required
             )))

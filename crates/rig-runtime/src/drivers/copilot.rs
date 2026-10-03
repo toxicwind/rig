@@ -83,14 +83,14 @@ impl PersistedTokens {
         self.access_token_expires_at > now + ACCESS_TOKEN_REFRESH_BUFFER_SECS as i64
     }
 
-    /// Load from the OpenFang data directory.
+    /// Load from the Rig data directory.
     pub fn load(rig_dir: &Path) -> Option<Self> {
         let path = rig_dir.join(TOKEN_FILE_NAME);
         let data = std::fs::read_to_string(&path).ok()?;
         serde_json::from_str(&data).ok()
     }
 
-    /// Persist to the OpenFang data directory with restricted permissions.
+    /// Persist to the Rig data directory with restricted permissions.
     pub fn save(&self, rig_dir: &Path) -> Result<(), String> {
         let path = rig_dir.join(TOKEN_FILE_NAME);
         let json = serde_json::to_string_pretty(self)
@@ -336,7 +336,7 @@ pub async fn exchange_copilot_token(
         .get(COPILOT_TOKEN_URL)
         .header("Authorization", format!("token {access_token}"))
         .header("Accept", "application/json")
-        .header("User-Agent", "OpenFang/1.0")
+        .header("User-Agent", "Rig/1.0")
         .header("Editor-Version", "vscode/1.96.0")
         .header("Editor-Plugin-Version", "copilot/1.250.0")
         .send()
@@ -420,7 +420,7 @@ pub async fn fetch_models(
     let resp = client
         .get(&url)
         .header("Authorization", format!("Bearer {copilot_token}"))
-        .header("User-Agent", "OpenFang/1.0")
+        .header("User-Agent", "Rig/1.0")
         .header("Editor-Version", "vscode/1.96.0")
         .send()
         .await

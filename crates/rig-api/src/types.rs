@@ -1,4 +1,4 @@
-//! Request/response types for the OpenFang API.
+//! Request/response types for the Rig API.
 
 use serde::{Deserialize, Serialize};
 

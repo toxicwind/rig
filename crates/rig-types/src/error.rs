@@ -1,10 +1,10 @@
-//! Shared error types for the OpenFang system.
+//! Shared error types for the Rig system.
 
 use thiserror::Error;
 
-/// Top-level error type for the OpenFang system.
+/// Top-level error type for the Rig system.
 #[derive(Error, Debug)]
-pub enum OpenFangError {
+pub enum RigError {
     /// The requested agent was not found.
     #[error("Agent not found: {0}")]
     AgentNotFound(String),
@@ -100,5 +100,5 @@ pub enum OpenFangError {
     InvalidInput(String),
 }
 
-/// Alias for Result with OpenFangError.
-pub type OpenFangResult<T> = Result<T, OpenFangError>;
+/// Alias for Result with RigError.
+pub type RigResult<T> = Result<T, RigError>;

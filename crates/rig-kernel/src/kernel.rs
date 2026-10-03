@@ -1,4 +1,4 @@
-//! OpenFangKernel — assembles all subsystems and provides the main API.
+//! RigKernel — assembles all subsystems and provides the main API.
 
 use crate::auth::AuthManager;
 use crate::background::{self, BackgroundExecutor};
@@ -30,7 +30,7 @@ use rig_runtime::tool_runner::builtin_tool_definitions;
 use rig_types::agent::*;
 use rig_types::capability::Capability;
 use rig_types::config::{KernelConfig, OutputFormat};
-use rig_types::error::OpenFangError;
+use rig_types::error::RigError;
 use rig_types::event::*;
 use rig_types::memory::Memory;
 use rig_types::tool::ToolDefinition;
@@ -40,7 +40,7 @@ use std::path::{Path, PathBuf};
 use std::sync::{Arc, OnceLock, Weak};
 use tracing::{debug, info, warn};
 
-/// The main OpenFang kernel — coordinates all subsystems.
+/// The main Rig kernel — coordinates all subsystems.
 /// Stub LLM driver used when no providers are configured.
 /// Returns a helpful error so the dashboard still boots and users can configure providers.
 struct StubDriver;
@@ -57,7 +57,7 @@ impl LlmDriver for StubDriver {
     }
 }
 
-pub struct OpenFangKernel {
+pub struct RigKernel {
     /// Kernel configuration.
     pub config: KernelConfig,
     /// Agent registry.
@@ -179,7 +179,7 @@ pub struct OpenFangKernel {
     /// messages via Telegram). Different agents can still run in parallel.
     agent_msg_locks: dashmap::DashMap<AgentId, Arc<tokio::sync::Mutex<()>>>,
     /// Weak self-reference for trigger dispatch (set after Arc wrapping).
-    self_handle: OnceLock<Weak<OpenFangKernel>>,
+    self_handle: OnceLock<Weak<RigKernel>>,
 }
 
 /// Bounded in-memory delivery receipt tracker.
@@ -295,7 +295,7 @@ impl DeliveryTracker {
 fn ensure_state_dir(state_dir: &Path, workspace: &Path) -> KernelResult<()> {
     for subdir in &["sessions", "logs", "memory"] {
         std::fs::create_dir_all(state_dir.join(subdir)).map_err(|e| {
-            KernelError::OpenFang(OpenFangError::Internal(format!(
+            KernelError::Rig(RigError::Internal(format!(
                 "Failed to create state dir {}/{subdir}: {e}",
                 state_dir.display()
             )))
@@ -321,7 +321,7 @@ fn ensure_state_dir(state_dir: &Path, workspace: &Path) -> KernelResult<()> {
 fn ensure_workspace(workspace: &Path) -> KernelResult<()> {
     for subdir in &["data", "output", "skills"] {
         std::fs::create_dir_all(workspace.join(subdir)).map_err(|e| {
-            KernelError::OpenFang(OpenFangError::Internal(format!(
+            KernelError::Rig(RigError::Internal(format!(
                 "Failed to create workspace dir {}/{subdir}: {e}",
                 workspace.display()
             )))
@@ -548,7 +548,7 @@ fn gethostname() -> Option<String> {
     }
 }
 
-impl OpenFangKernel {
+impl RigKernel {
     /// Boot the kernel with configuration from the given path.
     pub fn boot(config_path: Option<&Path>) -> KernelResult<Self> {
         let mut config = load_config(config_path);
@@ -634,13 +634,13 @@ impl OpenFangKernel {
 
         match config.mode {
             KernelMode::Stable => {
-                info!("Booting OpenFang kernel in STABLE mode — conservative defaults enforced");
+                info!("Booting Rig kernel in STABLE mode — conservative defaults enforced");
             }
             KernelMode::Dev => {
-                warn!("Booting OpenFang kernel in DEV mode — experimental features enabled");
+                warn!("Booting Rig kernel in DEV mode — experimental features enabled");
             }
             KernelMode::Default => {
-                info!("Booting OpenFang kernel...");
+                info!("Booting Rig kernel...");
             }
         }
 
@@ -1584,7 +1584,7 @@ impl OpenFangKernel {
             }
         }
 
-        info!("OpenFang kernel booted successfully");
+        info!("Rig kernel booted successfully");
         Ok(kernel)
     }
 
@@ -1612,7 +1612,7 @@ impl OpenFangKernel {
         let session = self
             .memory
             .create_session(agent_id)
-            .map_err(KernelError::OpenFang)?;
+            .map_err(KernelError::Rig)?;
         let session_id = session.id;
 
         // Inherit kernel exec_policy as fallback if agent manifest doesn't have one
@@ -1743,7 +1743,7 @@ impl OpenFangKernel {
         };
         self.registry
             .register(entry.clone())
-            .map_err(KernelError::OpenFang)?;
+            .map_err(KernelError::Rig)?;
 
         // Update parent's children list
         if let Some(parent_id) = parent {
@@ -1753,7 +1753,7 @@ impl OpenFangKernel {
         // Persist agent to SQLite so it survives restarts
         self.memory
             .save_agent(&entry)
-            .map_err(KernelError::OpenFang)?;
+            .map_err(KernelError::Rig)?;
 
         info!(agent = %name, id = %agent_id, persona = %persona_label, "Agent spawned");
 
@@ -1800,12 +1800,12 @@ impl OpenFangKernel {
     pub fn verify_signed_manifest(&self, signed_json: &str) -> KernelResult<String> {
         let signed: rig_types::manifest_signing::SignedManifest =
             serde_json::from_str(signed_json).map_err(|e| {
-                KernelError::OpenFang(rig_types::error::OpenFangError::Config(format!(
+                KernelError::Rig(rig_types::error::RigError::Config(format!(
                     "Invalid signed manifest JSON: {e}"
                 )))
             })?;
         signed.verify().map_err(|e| {
-            KernelError::OpenFang(rig_types::error::OpenFangError::Config(format!(
+            KernelError::Rig(rig_types::error::RigError::Config(format!(
                 "Manifest signature verification failed: {e}"
             )))
         })?;
@@ -1910,10 +1910,10 @@ impl OpenFangKernel {
         // Enforce quota before running the agent loop
         self.scheduler
             .check_quota(agent_id)
-            .map_err(KernelError::OpenFang)?;
+            .map_err(KernelError::Rig)?;
 
         let entry = self.registry.get(agent_id).ok_or_else(|| {
-            KernelError::OpenFang(OpenFangError::AgentNotFound(agent_id.to_string()))
+            KernelError::Rig(RigError::AgentNotFound(agent_id.to_string()))
         })?;
 
         // Dispatch based on module type
@@ -1997,10 +1997,10 @@ impl OpenFangKernel {
         // Enforce quota before spawning the streaming task
         self.scheduler
             .check_quota(agent_id)
-            .map_err(KernelError::OpenFang)?;
+            .map_err(KernelError::Rig)?;
 
         let entry = self.registry.get(agent_id).ok_or_else(|| {
-            KernelError::OpenFang(OpenFangError::AgentNotFound(agent_id.to_string()))
+            KernelError::Rig(RigError::AgentNotFound(agent_id.to_string()))
         })?;
 
         let is_wasm = entry.manifest.module.starts_with("wasm:");
@@ -2061,7 +2061,7 @@ impl OpenFangKernel {
         let mut session = self
             .memory
             .get_session(entry.session_id)
-            .map_err(KernelError::OpenFang)?
+            .map_err(KernelError::Rig)?
             .unwrap_or_else(|| rig_memory::session::Session {
                 id: entry.session_id,
                 agent_id,
@@ -2476,7 +2476,7 @@ impl OpenFangKernel {
                 Err(e) => {
                     kernel_clone.supervisor.record_panic();
                     warn!(agent_id = %agent_id, error = %e, "Streaming agent loop failed");
-                    Err(KernelError::OpenFang(e))
+                    Err(KernelError::Rig(e))
                 }
             }
         });
@@ -2507,7 +2507,7 @@ impl OpenFangKernel {
         info!(agent = %entry.name, path = %wasm_path.display(), "Executing WASM agent");
 
         let wasm_bytes = std::fs::read(&wasm_path).map_err(|e| {
-            KernelError::OpenFang(OpenFangError::Internal(format!(
+            KernelError::Rig(RigError::Internal(format!(
                 "Failed to read WASM module '{}': {e}",
                 wasm_path.display()
             )))
@@ -2540,7 +2540,7 @@ impl OpenFangKernel {
             )
             .await
             .map_err(|e| {
-                KernelError::OpenFang(OpenFangError::Internal(format!(
+                KernelError::Rig(RigError::Internal(format!(
                     "WASM execution failed: {e}"
                 )))
             })?;
@@ -2615,7 +2615,7 @@ impl OpenFangKernel {
         )
         .await
         .map_err(|e| {
-            KernelError::OpenFang(OpenFangError::Internal(format!(
+            KernelError::Rig(RigError::Internal(format!(
                 "Python execution failed: {e}"
             )))
         })?;
@@ -2651,12 +2651,12 @@ impl OpenFangKernel {
         // Check metering quota before starting
         self.metering
             .check_quota(agent_id, &entry.manifest.resources)
-            .map_err(KernelError::OpenFang)?;
+            .map_err(KernelError::Rig)?;
 
         let mut session = self
             .memory
             .get_session(entry.session_id)
-            .map_err(KernelError::OpenFang)?
+            .map_err(KernelError::Rig)?
             .unwrap_or_else(|| rig_memory::session::Session {
                 id: entry.session_id,
                 agent_id,
@@ -2995,7 +2995,7 @@ impl OpenFangKernel {
             content_blocks,
         )
         .await
-        .map_err(KernelError::OpenFang)?;
+        .map_err(KernelError::Rig)?;
 
         // Append new messages to canonical session for cross-channel memory
         if session.messages.len() > messages_before {
@@ -3071,7 +3071,7 @@ impl OpenFangKernel {
     /// and creates a fresh session ID.
     pub fn reset_session(&self, agent_id: AgentId) -> KernelResult<()> {
         let entry = self.registry.get(agent_id).ok_or_else(|| {
-            KernelError::OpenFang(OpenFangError::AgentNotFound(agent_id.to_string()))
+            KernelError::Rig(RigError::AgentNotFound(agent_id.to_string()))
         })?;
 
         // Auto-save session context to workspace memory before clearing
@@ -3088,12 +3088,12 @@ impl OpenFangKernel {
         let new_session = self
             .memory
             .create_session(agent_id)
-            .map_err(KernelError::OpenFang)?;
+            .map_err(KernelError::Rig)?;
 
         // Update registry with new session ID
         self.registry
             .update_session_id(agent_id, new_session.id)
-            .map_err(KernelError::OpenFang)?;
+            .map_err(KernelError::Rig)?;
 
         // Reset quota tracking so /new clears "token quota exceeded"
         self.scheduler.reset_usage(agent_id);
@@ -3107,7 +3107,7 @@ impl OpenFangKernel {
     /// Creates a fresh empty session afterward so the agent is still usable.
     pub fn clear_agent_history(&self, agent_id: AgentId) -> KernelResult<()> {
         let _entry = self.registry.get(agent_id).ok_or_else(|| {
-            KernelError::OpenFang(OpenFangError::AgentNotFound(agent_id.to_string()))
+            KernelError::Rig(RigError::AgentNotFound(agent_id.to_string()))
         })?;
 
         // Delete all regular sessions
@@ -3120,12 +3120,12 @@ impl OpenFangKernel {
         let new_session = self
             .memory
             .create_session(agent_id)
-            .map_err(KernelError::OpenFang)?;
+            .map_err(KernelError::Rig)?;
 
         // Update registry with new session ID
         self.registry
             .update_session_id(agent_id, new_session.id)
-            .map_err(KernelError::OpenFang)?;
+            .map_err(KernelError::Rig)?;
 
         info!(agent_id = %agent_id, "All agent history cleared");
         Ok(())
@@ -3135,13 +3135,13 @@ impl OpenFangKernel {
     pub fn list_agent_sessions(&self, agent_id: AgentId) -> KernelResult<Vec<serde_json::Value>> {
         // Verify agent exists
         let entry = self.registry.get(agent_id).ok_or_else(|| {
-            KernelError::OpenFang(OpenFangError::AgentNotFound(agent_id.to_string()))
+            KernelError::Rig(RigError::AgentNotFound(agent_id.to_string()))
         })?;
 
         let mut sessions = self
             .memory
             .list_agent_sessions(agent_id)
-            .map_err(KernelError::OpenFang)?;
+            .map_err(KernelError::Rig)?;
 
         // Mark the active session
         for s in &mut sessions {
@@ -3166,18 +3166,18 @@ impl OpenFangKernel {
     ) -> KernelResult<serde_json::Value> {
         // Verify agent exists
         let _entry = self.registry.get(agent_id).ok_or_else(|| {
-            KernelError::OpenFang(OpenFangError::AgentNotFound(agent_id.to_string()))
+            KernelError::Rig(RigError::AgentNotFound(agent_id.to_string()))
         })?;
 
         let session = self
             .memory
             .create_session_with_label(agent_id, label)
-            .map_err(KernelError::OpenFang)?;
+            .map_err(KernelError::Rig)?;
 
         // Switch to the new session
         self.registry
             .update_session_id(agent_id, session.id)
-            .map_err(KernelError::OpenFang)?;
+            .map_err(KernelError::Rig)?;
 
         info!(agent_id = %agent_id, label = ?label, "Created new session");
 
@@ -3195,27 +3195,27 @@ impl OpenFangKernel {
     ) -> KernelResult<()> {
         // Verify agent exists
         let _entry = self.registry.get(agent_id).ok_or_else(|| {
-            KernelError::OpenFang(OpenFangError::AgentNotFound(agent_id.to_string()))
+            KernelError::Rig(RigError::AgentNotFound(agent_id.to_string()))
         })?;
 
         // Verify session exists and belongs to this agent
         let session = self
             .memory
             .get_session(session_id)
-            .map_err(KernelError::OpenFang)?
+            .map_err(KernelError::Rig)?
             .ok_or_else(|| {
-                KernelError::OpenFang(OpenFangError::Internal("Session not found".to_string()))
+                KernelError::Rig(RigError::Internal("Session not found".to_string()))
             })?;
 
         if session.agent_id != agent_id {
-            return Err(KernelError::OpenFang(OpenFangError::Internal(
+            return Err(KernelError::Rig(RigError::Internal(
                 "Session belongs to a different agent".to_string(),
             )));
         }
 
         self.registry
             .update_session_id(agent_id, session_id)
-            .map_err(KernelError::OpenFang)?;
+            .map_err(KernelError::Rig)?;
 
         info!(agent_id = %agent_id, session_id = %session_id.0, "Switched session");
         Ok(())
@@ -3384,7 +3384,7 @@ impl OpenFangKernel {
                 })
                 .unwrap_or((true, Vec::new()));
             if !valid && !known_ids.is_empty() {
-                return Err(KernelError::OpenFang(OpenFangError::InvalidInput(
+                return Err(KernelError::Rig(RigError::InvalidInput(
                     format!(
                         "Unknown model '{model}' for provider '{ep}'. Known {ep} models: {list}. Use one of these, or drop --provider and let the daemon resolve the model.",
                         list = known_ids.join(", ")
@@ -3458,12 +3458,12 @@ impl OpenFangKernel {
                     api_key_env,
                     None,
                 )
-                .map_err(KernelError::OpenFang)?;
+                .map_err(KernelError::Rig)?;
             info!(agent_id = %agent_id, model = %normalized_model, provider = %provider, "Agent model+provider updated");
         } else {
             self.registry
                 .update_model(agent_id, normalized_model.clone())
-                .map_err(KernelError::OpenFang)?;
+                .map_err(KernelError::Rig)?;
             info!(agent_id = %agent_id, model = %normalized_model, "Agent model updated (provider unchanged)");
         }
 
@@ -3493,7 +3493,7 @@ impl OpenFangKernel {
             let known = registry.skill_names();
             for name in &skills {
                 if !known.contains(name) {
-                    return Err(KernelError::OpenFang(OpenFangError::Internal(format!(
+                    return Err(KernelError::Rig(RigError::Internal(format!(
                         "Unknown skill: {name}"
                     ))));
                 }
@@ -3502,7 +3502,7 @@ impl OpenFangKernel {
 
         self.registry
             .update_skills(agent_id, skills.clone())
-            .map_err(KernelError::OpenFang)?;
+            .map_err(KernelError::Rig)?;
 
         if let Some(entry) = self.registry.get(agent_id) {
             let _ = self.memory.save_agent(&entry);
@@ -3531,7 +3531,7 @@ impl OpenFangKernel {
                 for name in &servers {
                     let normalized = rig_runtime::mcp::normalize_name(name);
                     if !known_servers.contains(&normalized) {
-                        return Err(KernelError::OpenFang(OpenFangError::Internal(format!(
+                        return Err(KernelError::Rig(RigError::Internal(format!(
                             "Unknown MCP server: {name}"
                         ))));
                     }
@@ -3541,7 +3541,7 @@ impl OpenFangKernel {
 
         self.registry
             .update_mcp_servers(agent_id, servers.clone())
-            .map_err(KernelError::OpenFang)?;
+            .map_err(KernelError::Rig)?;
 
         if let Some(entry) = self.registry.get(agent_id) {
             let _ = self.memory.save_agent(&entry);
@@ -3560,7 +3560,7 @@ impl OpenFangKernel {
     ) -> KernelResult<()> {
         self.registry
             .update_tool_filters(agent_id, allowlist.clone(), blocklist.clone())
-            .map_err(KernelError::OpenFang)?;
+            .map_err(KernelError::Rig)?;
 
         if let Some(entry) = self.registry.get(agent_id) {
             let _ = self.memory.save_agent(&entry);
@@ -3578,13 +3578,13 @@ impl OpenFangKernel {
     /// Get session token usage and estimated cost for an agent.
     pub fn session_usage_cost(&self, agent_id: AgentId) -> KernelResult<(u64, u64, f64)> {
         let entry = self.registry.get(agent_id).ok_or_else(|| {
-            KernelError::OpenFang(OpenFangError::AgentNotFound(agent_id.to_string()))
+            KernelError::Rig(RigError::AgentNotFound(agent_id.to_string()))
         })?;
 
         let session = self
             .memory
             .get_session(entry.session_id)
-            .map_err(KernelError::OpenFang)?;
+            .map_err(KernelError::Rig)?;
 
         let (input_tokens, output_tokens) = session
             .map(|s| {
@@ -3634,13 +3634,13 @@ impl OpenFangKernel {
         use rig_runtime::compactor::{compact_session, needs_compaction, CompactionConfig};
 
         let entry = self.registry.get(agent_id).ok_or_else(|| {
-            KernelError::OpenFang(OpenFangError::AgentNotFound(agent_id.to_string()))
+            KernelError::Rig(RigError::AgentNotFound(agent_id.to_string()))
         })?;
 
         let session = self
             .memory
             .get_session(entry.session_id)
-            .map_err(KernelError::OpenFang)?
+            .map_err(KernelError::Rig)?
             .unwrap_or_else(|| rig_memory::session::Session {
                 id: entry.session_id,
                 agent_id,
@@ -3664,12 +3664,12 @@ impl OpenFangKernel {
 
         let result = compact_session(driver, &model, &session, &config)
             .await
-            .map_err(|e| KernelError::OpenFang(OpenFangError::Internal(e)))?;
+            .map_err(|e| KernelError::Rig(RigError::Internal(e)))?;
 
         // Store the LLM summary in the canonical session
         self.memory
             .store_llm_summary(agent_id, &result.summary, result.kept_messages.clone())
-            .map_err(KernelError::OpenFang)?;
+            .map_err(KernelError::Rig)?;
 
         // Post-compaction audit: validate and repair the kept messages
         let (repaired_messages, repair_stats) =
@@ -3680,7 +3680,7 @@ impl OpenFangKernel {
         updated_session.messages = repaired_messages;
         self.memory
             .save_session(&updated_session)
-            .map_err(KernelError::OpenFang)?;
+            .map_err(KernelError::Rig)?;
 
         // Build result message with audit summary
         let mut msg = format!(
@@ -3716,13 +3716,13 @@ impl OpenFangKernel {
         use rig_runtime::compactor::generate_context_report;
 
         let entry = self.registry.get(agent_id).ok_or_else(|| {
-            KernelError::OpenFang(OpenFangError::AgentNotFound(agent_id.to_string()))
+            KernelError::Rig(RigError::AgentNotFound(agent_id.to_string()))
         })?;
 
         let session = self
             .memory
             .get_session(entry.session_id)
-            .map_err(KernelError::OpenFang)?
+            .map_err(KernelError::Rig)?
             .unwrap_or_else(|| rig_memory::session::Session {
                 id: entry.session_id,
                 agent_id,
@@ -3759,11 +3759,11 @@ impl OpenFangKernel {
     /// See issue #890 — allows an orchestrator agent to wake other agents.
     pub fn activate_agent(&self, agent_id: AgentId) -> KernelResult<String> {
         let entry = self.registry.get(agent_id).ok_or_else(|| {
-            KernelError::OpenFang(OpenFangError::AgentNotFound(agent_id.to_string()))
+            KernelError::Rig(RigError::AgentNotFound(agent_id.to_string()))
         })?;
 
         if entry.state == AgentState::Terminated {
-            return Err(KernelError::OpenFang(OpenFangError::Internal(format!(
+            return Err(KernelError::Rig(RigError::Internal(format!(
                 "Agent {} is Terminated and cannot be activated",
                 entry.name
             ))));
@@ -3775,7 +3775,7 @@ impl OpenFangKernel {
 
         self.registry
             .set_state(agent_id, AgentState::Running)
-            .map_err(KernelError::OpenFang)?;
+            .map_err(KernelError::Rig)?;
 
         info!(
             agent = %name,
@@ -3792,7 +3792,7 @@ impl OpenFangKernel {
         let entry = self
             .registry
             .remove(agent_id)
-            .map_err(KernelError::OpenFang)?;
+            .map_err(KernelError::Rig)?;
         self.background.stop_agent(agent_id);
         self.scheduler.unregister(agent_id);
         self.capabilities.revoke_all(agent_id);
@@ -3837,7 +3837,7 @@ impl OpenFangKernel {
             .hand_registry
             .get_definition(hand_id)
             .ok_or_else(|| {
-                KernelError::OpenFang(OpenFangError::AgentNotFound(format!(
+                KernelError::Rig(RigError::AgentNotFound(format!(
                     "Hand not found: {hand_id}"
                 )))
             })?
@@ -3848,10 +3848,10 @@ impl OpenFangKernel {
             .hand_registry
             .activate(hand_id, config, instance_name.clone())
             .map_err(|e| match e {
-                HandError::AlreadyActive(id) => KernelError::OpenFang(OpenFangError::Internal(
+                HandError::AlreadyActive(id) => KernelError::Rig(RigError::Internal(
                     format!("Hand already active: {id}"),
                 )),
-                other => KernelError::OpenFang(OpenFangError::Internal(other.to_string())),
+                other => KernelError::Rig(RigError::Internal(other.to_string())),
             })?;
 
         // Build an agent manifest from the hand definition.
@@ -4069,7 +4069,7 @@ impl OpenFangKernel {
         // Link agent to instance
         self.hand_registry
             .set_agent(instance.instance_id, agent_id)
-            .map_err(|e| KernelError::OpenFang(OpenFangError::Internal(e.to_string())))?;
+            .map_err(|e| KernelError::Rig(RigError::Internal(e.to_string())))?;
 
         info!(
             hand = %hand_id,
@@ -4093,7 +4093,7 @@ impl OpenFangKernel {
         let instance = self
             .hand_registry
             .deactivate(instance_id)
-            .map_err(|e| KernelError::OpenFang(OpenFangError::Internal(e.to_string())))?;
+            .map_err(|e| KernelError::Rig(RigError::Internal(e.to_string())))?;
 
         if let Some(agent_id) = instance.agent_id {
             if let Err(e) = self.kill_agent(agent_id) {
@@ -4129,14 +4129,14 @@ impl OpenFangKernel {
     pub fn pause_hand(&self, instance_id: uuid::Uuid) -> KernelResult<()> {
         self.hand_registry
             .pause(instance_id)
-            .map_err(|e| KernelError::OpenFang(OpenFangError::Internal(e.to_string())))
+            .map_err(|e| KernelError::Rig(RigError::Internal(e.to_string())))
     }
 
     /// Resume a paused hand.
     pub fn resume_hand(&self, instance_id: uuid::Uuid) -> KernelResult<()> {
         self.hand_registry
             .resume(instance_id)
-            .map_err(|e| KernelError::OpenFang(OpenFangError::Internal(e.to_string())))
+            .map_err(|e| KernelError::Rig(RigError::Internal(e.to_string())))
     }
 
     /// Set the weak self-reference for trigger dispatch.
@@ -4321,7 +4321,7 @@ impl OpenFangKernel {
     ) -> KernelResult<TriggerId> {
         // Verify agent exists
         if self.registry.get(agent_id).is_none() {
-            return Err(KernelError::OpenFang(OpenFangError::AgentNotFound(
+            return Err(KernelError::Rig(RigError::AgentNotFound(
                 agent_id.to_string(),
             )));
         }
@@ -4364,7 +4364,7 @@ impl OpenFangKernel {
             .create_run(workflow_id, input)
             .await
             .ok_or_else(|| {
-                KernelError::OpenFang(OpenFangError::Internal("Workflow not found".to_string()))
+                KernelError::Rig(RigError::Internal("Workflow not found".to_string()))
             })?;
 
         // Agent resolver: looks up by name or ID in the registry
@@ -4405,12 +4405,12 @@ impl OpenFangKernel {
         )
         .await
         .map_err(|_| {
-            KernelError::OpenFang(OpenFangError::Internal(format!(
+            KernelError::Rig(RigError::Internal(format!(
                 "Workflow timed out after {MAX_WORKFLOW_SECS}s"
             )))
         })?
         .map_err(|e| {
-            KernelError::OpenFang(OpenFangError::Internal(format!("Workflow failed: {e}")))
+            KernelError::Rig(RigError::Internal(format!("Workflow failed: {e}")))
         })?;
 
         Ok((run_id, output))
@@ -5310,7 +5310,7 @@ impl OpenFangKernel {
     /// This cleanly shuts down in-memory state but preserves persistent agent
     /// data so agents are restored on the next boot.
     pub fn shutdown(&self) {
-        info!("Shutting down OpenFang kernel...");
+        info!("Shutting down Rig kernel...");
 
         // Kill WhatsApp gateway child process if running
         if let Ok(guard) = self.whatsapp_gateway_pid.lock() {
@@ -5346,7 +5346,7 @@ impl OpenFangKernel {
         }
 
         info!(
-            "OpenFang kernel shut down ({} agents preserved)",
+            "Rig kernel shut down ({} agents preserved)",
             self.registry.list().len()
         );
     }
@@ -7247,7 +7247,7 @@ fn sanitize_cron_job_name(raw: &str) -> String {
 
 /// Deliver a cron job's agent response to the configured delivery target.
 async fn cron_deliver_response(
-    kernel: &OpenFangKernel,
+    kernel: &RigKernel,
     agent_id: AgentId,
     response: &str,
     delivery: &rig_types::scheduler::CronDelivery,
@@ -7338,7 +7338,7 @@ async fn cron_deliver_response(
 /// (they intentionally return "not implemented" / empty values since the
 /// fan-out engine never calls them).
 struct KernelCronBridge {
-    kernel: Arc<OpenFangKernel>,
+    kernel: Arc<RigKernel>,
 }
 
 #[async_trait]
@@ -7378,7 +7378,7 @@ impl rig_channels::bridge::ChannelBridgeHandle for KernelCronBridge {
 /// has already succeeded. Per-target failures are logged and counted, and
 /// the aggregate pass/fail counts are returned for the scheduler log.
 async fn cron_fan_out_targets(
-    kernel: &Arc<OpenFangKernel>,
+    kernel: &Arc<RigKernel>,
     job_name: &str,
     output: &str,
     targets: &[rig_types::scheduler::CronDeliveryTarget],
@@ -7421,7 +7421,7 @@ async fn cron_fan_out_targets(
 }
 
 #[async_trait]
-impl KernelHandle for OpenFangKernel {
+impl KernelHandle for RigKernel {
     async fn spawn_agent(
         &self,
         manifest_toml: &str,
@@ -7485,7 +7485,7 @@ impl KernelHandle for OpenFangKernel {
         let id: AgentId = agent_id
             .parse()
             .map_err(|_| "Invalid agent ID".to_string())?;
-        OpenFangKernel::kill_agent(self, id).map_err(|e| format!("Kill failed: {e}"))
+        RigKernel::kill_agent(self, id).map_err(|e| format!("Kill failed: {e}"))
     }
 
     fn activate_agent(&self, agent_id: &str) -> Result<String, String> {
@@ -7498,7 +7498,7 @@ impl KernelHandle for OpenFangKernel {
                 .map(|e| e.id)
                 .ok_or_else(|| format!("Agent not found: {agent_id}"))?,
         };
-        OpenFangKernel::activate_agent(self, id).map_err(|e| format!("Activate failed: {e}"))
+        RigKernel::activate_agent(self, id).map_err(|e| format!("Activate failed: {e}"))
     }
 
     fn memory_store(&self, key: &str, value: serde_json::Value) -> Result<(), String> {
@@ -7593,7 +7593,7 @@ impl KernelHandle for OpenFangKernel {
             EventTarget::Broadcast,
             EventPayload::Custom(payload_bytes),
         );
-        OpenFangKernel::publish_event(self, event).await;
+        RigKernel::publish_event(self, event).await;
         Ok(())
     }
 
@@ -8120,7 +8120,7 @@ impl KernelHandle for OpenFangKernel {
 // --- OFP Wire Protocol integration ---
 
 #[async_trait]
-impl rig_wire::peer::PeerHandle for OpenFangKernel {
+impl rig_wire::peer::PeerHandle for RigKernel {
     fn local_agents(&self) -> Vec<rig_wire::message::RemoteAgentInfo> {
         self.registry
             .list()
@@ -8656,7 +8656,7 @@ mod tests {
             ..KernelConfig::default()
         };
 
-        let kernel = OpenFangKernel::boot_with_config(config).expect("Kernel should boot");
+        let kernel = RigKernel::boot_with_config(config).expect("Kernel should boot");
         let instance = kernel
             .activate_hand("browser", HashMap::new(), None)
             .expect("browser hand should activate");
@@ -8694,7 +8694,7 @@ mod tests {
             data_dir: home_dir.join("data"),
             ..KernelConfig::default()
         };
-        let kernel = OpenFangKernel::boot_with_config(config).expect("kernel boots");
+        let kernel = RigKernel::boot_with_config(config).expect("kernel boots");
 
         // Activate a hand and grab its agent id (mirrors what the wizard does).
         let instance = kernel
@@ -8754,7 +8754,7 @@ mod tests {
             data_dir: home_dir.join("data"),
             ..KernelConfig::default()
         };
-        let kernel = OpenFangKernel::boot_with_config(config).expect("kernel boots");
+        let kernel = RigKernel::boot_with_config(config).expect("kernel boots");
 
         // Suspended agent: should flip to Running.
         let suspended = register_test_agent(&kernel, "sleepy");
@@ -8832,7 +8832,7 @@ mod tests {
             data_dir: home_dir.join("data"),
             ..KernelConfig::default()
         };
-        let kernel = OpenFangKernel::boot_with_config(config).expect("kernel boots");
+        let kernel = RigKernel::boot_with_config(config).expect("kernel boots");
 
         let agent = register_test_agent(&kernel, "worker");
         kernel
@@ -8902,7 +8902,7 @@ mod tests {
     /// Register a minimal test agent in a booted kernel and return its ID.
     /// Kept local to the tests module to avoid widening the kernel's public
     /// surface.
-    fn register_test_agent(kernel: &OpenFangKernel, name: &str) -> AgentId {
+    fn register_test_agent(kernel: &RigKernel, name: &str) -> AgentId {
         let agent_id = AgentId::new();
         let entry = AgentEntry {
             id: agent_id,
@@ -8935,7 +8935,7 @@ mod tests {
             ..KernelConfig::default()
         };
 
-        let kernel = OpenFangKernel::boot_with_config(config).expect("kernel boots");
+        let kernel = RigKernel::boot_with_config(config).expect("kernel boots");
 
         // Register a target agent the legacy entries can point at.
         let agent = register_test_agent(&kernel, "report-agent");
@@ -9005,7 +9005,7 @@ mod tests {
             data_dir: home_dir.join("data"),
             ..KernelConfig::default()
         };
-        let kernel = OpenFangKernel::boot_with_config(config).expect("kernel boots");
+        let kernel = RigKernel::boot_with_config(config).expect("kernel boots");
         let agent = register_test_agent(&kernel, "idem-agent");
         let shared = super::shared_memory_agent_id();
 
@@ -9059,7 +9059,7 @@ mod tests {
             data_dir: home_dir.join("data"),
             ..KernelConfig::default()
         };
-        let kernel = OpenFangKernel::boot_with_config(config).expect("kernel boots");
+        let kernel = RigKernel::boot_with_config(config).expect("kernel boots");
         let shared = super::shared_memory_agent_id();
 
         // Entry references an agent that does not exist in the registry.
@@ -9121,7 +9121,7 @@ mod tests {
             subprocess_timeout_secs: Some(120),
         });
 
-        let kernel = OpenFangKernel::boot_with_config(config.clone()).expect("kernel boots");
+        let kernel = RigKernel::boot_with_config(config.clone()).expect("kernel boots");
 
         // Pre-condition: nothing has been hot-reloaded yet — override slot is empty.
         {
@@ -9188,7 +9188,7 @@ mod tests {
         };
         config.default_model.subprocess_timeout_secs = Some(180);
 
-        let kernel = OpenFangKernel::boot_with_config(config.clone()).expect("kernel boots");
+        let kernel = RigKernel::boot_with_config(config.clone()).expect("kernel boots");
 
         // Operator raises the timeout to 1200s.
         let mut new_config = config.clone();
@@ -9235,7 +9235,7 @@ mod tests {
             data_dir: home_dir.join("data"),
             ..KernelConfig::default()
         };
-        let kernel = OpenFangKernel::boot_with_config(config.clone()).expect("kernel boots");
+        let kernel = RigKernel::boot_with_config(config.clone()).expect("kernel boots");
 
         // Operator adds a codex fallback with a 600s timeout.
         let mut new_config = config.clone();
@@ -9312,7 +9312,7 @@ mod tests {
             ..KernelConfig::default()
         };
 
-        let kernel = OpenFangKernel::boot_with_config(config).expect("kernel boots");
+        let kernel = RigKernel::boot_with_config(config).expect("kernel boots");
         let referenced = kernel.referenced_providers();
 
         // Configured providers ARE referenced.
@@ -9377,7 +9377,7 @@ mod tests {
             ..KernelConfig::default()
         };
 
-        let kernel = OpenFangKernel::boot_with_config(config).expect("kernel boots");
+        let kernel = RigKernel::boot_with_config(config).expect("kernel boots");
         let referenced = kernel.referenced_providers();
         assert!(
             referenced.contains("anthropic"),
@@ -9421,7 +9421,7 @@ mod tests {
             ..KernelConfig::default()
         };
 
-        let kernel = OpenFangKernel::boot_with_config(config).expect("kernel boots");
+        let kernel = RigKernel::boot_with_config(config).expect("kernel boots");
         let referenced = kernel.referenced_providers();
         assert!(
             referenced.contains("anthropic"),
@@ -9463,7 +9463,7 @@ mod tests {
             ..KernelConfig::default()
         };
 
-        let kernel = OpenFangKernel::boot_with_config(config).expect("kernel boots");
+        let kernel = RigKernel::boot_with_config(config).expect("kernel boots");
         let referenced = kernel.referenced_providers();
         assert!(
             referenced.contains("openai"),
@@ -9493,7 +9493,7 @@ mod tests {
             ..KernelConfig::default()
         };
 
-        let kernel = OpenFangKernel::boot_with_config(config).expect("kernel boots");
+        let kernel = RigKernel::boot_with_config(config).expect("kernel boots");
 
         // Drop a minimal skill manifest with a tag matching a known
         // provider ID, then load it through the kernel's registry.
@@ -9566,7 +9566,7 @@ system_prompt = "You are a test agent."
             data_dir: home_dir.join("data"),
             ..KernelConfig::default()
         };
-        let kernel = OpenFangKernel::boot_with_config(config).expect("kernel boots");
+        let kernel = RigKernel::boot_with_config(config).expect("kernel boots");
 
         // The disk-placed agent must be in the registry and visible via list().
         let entry = kernel
@@ -9600,7 +9600,7 @@ system_prompt = "You are a test agent."
             data_dir: home_dir.join("data"),
             ..KernelConfig::default()
         };
-        let kernel2 = OpenFangKernel::boot_with_config(config2).expect("kernel re-boots");
+        let kernel2 = RigKernel::boot_with_config(config2).expect("kernel re-boots");
         let count_after = kernel2.registry.list().len();
         assert_eq!(
             count_before, count_after,
@@ -9935,7 +9935,7 @@ system_prompt = "You are a test agent."
             "/home/toxic/sovereign/config/rig-25196.toml",
         ));
         assert_eq!(
-            OpenFangKernel::resolve_reload_config_path(&cfg),
+            RigKernel::resolve_reload_config_path(&cfg),
             std::path::PathBuf::from("/home/toxic/sovereign/config/rig-25196.toml")
         );
     }
@@ -9944,7 +9944,7 @@ system_prompt = "You are a test agent."
     fn test_resolve_reload_config_path_falls_back_to_home_dir() {
         let cfg = KernelConfig::default();
         assert_eq!(
-            OpenFangKernel::resolve_reload_config_path(&cfg),
+            RigKernel::resolve_reload_config_path(&cfg),
             cfg.home_dir.join("config.toml")
         );
     }

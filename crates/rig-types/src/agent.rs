@@ -616,10 +616,10 @@ pub struct SessionLabel(String);
 
 impl SessionLabel {
     /// Create a new validated session label.
-    pub fn new(label: &str) -> Result<Self, crate::error::OpenFangError> {
+    pub fn new(label: &str) -> Result<Self, crate::error::RigError> {
         let trimmed = label.trim();
         if trimmed.is_empty() || trimmed.len() > 128 {
-            return Err(crate::error::OpenFangError::InvalidInput(
+            return Err(crate::error::RigError::InvalidInput(
                 "Session label must be 1-128 chars".into(),
             ));
         }
@@ -627,7 +627,7 @@ impl SessionLabel {
             .chars()
             .all(|c| c.is_alphanumeric() || c == ' ' || c == '-' || c == '_')
         {
-            return Err(crate::error::OpenFangError::InvalidInput(
+            return Err(crate::error::RigError::InvalidInput(
                 "Session label contains invalid chars".into(),
             ));
         }

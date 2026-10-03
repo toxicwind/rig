@@ -154,7 +154,7 @@ pub async fn install_update(app: tauri::AppHandle) -> Result<(), String> {
     crate::updater::download_and_install_update(&app).await
 }
 
-/// Open the OpenFang config directory (`~/.rig/`) in the OS file manager.
+/// Open the Rig config directory (`~/.rig/`) in the OS file manager.
 #[tauri::command]
 pub fn open_config_dir() -> Result<(), String> {
     let dir = rig_home();
@@ -162,7 +162,7 @@ pub fn open_config_dir() -> Result<(), String> {
     open::that(&dir).map_err(|e| format!("Failed to open directory: {e}"))
 }
 
-/// Open the OpenFang logs directory (`~/.rig/logs/`) in the OS file manager.
+/// Open the Rig logs directory (`~/.rig/logs/`) in the OS file manager.
 #[tauri::command]
 pub fn open_logs_dir() -> Result<(), String> {
     let dir = rig_home().join("logs");

@@ -1,4 +1,4 @@
-//! OpenFang daemon server — boots the kernel and serves the HTTP API.
+//! Rig daemon server — boots the kernel and serves the HTTP API.
 
 use crate::channel_bridge;
 use crate::middleware;
@@ -7,7 +7,7 @@ use crate::routes::{self, AppState};
 use crate::webchat;
 use crate::ws;
 use axum::Router;
-use rig_kernel::OpenFangKernel;
+use rig_kernel::RigKernel;
 use std::net::SocketAddr;
 use std::path::Path;
 use std::sync::Arc;
@@ -35,7 +35,7 @@ pub struct DaemonInfo {
 /// Returns `(router, shared_state)`. The caller can use `state.bridge_manager`
 /// to shut down the bridge on exit.
 pub async fn build_router(
-    kernel: Arc<OpenFangKernel>,
+    kernel: Arc<RigKernel>,
     listen_addr: SocketAddr,
 ) -> (Router<()>, Arc<AppState>) {
     // Start channel bridges (Telegram, etc.)
@@ -797,11 +797,11 @@ pub async fn build_router(
     (app, state)
 }
 
-/// Start the OpenFang daemon: boot kernel + HTTP API server.
+/// Start the Rig daemon: boot kernel + HTTP API server.
 ///
 /// This function blocks until Ctrl+C or a shutdown request.
 pub async fn run_daemon(
-    kernel: OpenFangKernel,
+    kernel: RigKernel,
     listen_addr: &str,
     daemon_info_path: Option<&Path>,
 ) -> Result<(), Box<dyn std::error::Error>> {
@@ -879,7 +879,7 @@ pub async fn run_daemon(
         }
     }
 
-    info!("OpenFang API server listening on http://{addr}");
+    info!("Rig API server listening on http://{addr}");
     info!("WebChat UI available at http://{addr}/",);
     info!("WebSocket endpoint: ws://{addr}/api/agents/{{id}}/ws",);
 
@@ -923,7 +923,7 @@ pub async fn run_daemon(
     // Shutdown kernel
     kernel.shutdown();
 
-    info!("OpenFang daemon stopped");
+    info!("Rig daemon stopped");
     Ok(())
 }
 
@@ -1018,7 +1018,7 @@ fn is_process_alive(pid: u32) -> bool {
     }
 }
 
-/// Check if an OpenFang daemon is actually responding at the given address.
+/// Check if an Rig daemon is actually responding at the given address.
 /// This avoids false positives where a different process reused the same PID
 /// after a system reboot.
 fn is_daemon_responding(addr: &str) -> bool {

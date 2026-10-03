@@ -1,4 +1,4 @@
-//! OpenFang CLI — command-line interface for the OpenFang Agent OS.
+//! Rig CLI — command-line interface for the Rig Agent OS.
 //!
 //! When a daemon is running (`rig start`), the CLI talks to it over HTTP.
 //! Otherwise, commands boot an in-process kernel (single-shot mode).
@@ -17,7 +17,7 @@ mod ui;
 use clap::{Parser, Subcommand};
 use colored::Colorize;
 use rig_api::server::read_daemon_info;
-use rig_kernel::OpenFangKernel;
+use rig_kernel::RigKernel;
 use rig_types::agent::{AgentId, AgentManifest};
 use std::io::{self, BufRead, Write};
 use std::path::PathBuf;
@@ -74,7 +74,7 @@ const AFTER_HELP: &str = "\
   rig doctor               Run diagnostic health checks
   rig channel setup        Interactive channel setup wizard
   rig cron list            List scheduled jobs
-  rig uninstall            Completely remove OpenFang from your system
+  rig uninstall            Completely remove Rig from your system
 
 \x1b[1;36mQuick Start:\x1b[0m
   1. rig init              Set up config + API key
@@ -107,13 +107,13 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    /// Initialize OpenFang (create ~/.rig/ and default config).
+    /// Initialize Rig (create ~/.rig/ and default config).
     Init {
         /// Quick mode: no prompts, just write config + .env (for CI/scripts).
         #[arg(long)]
         quick: bool,
     },
-    /// Start the OpenFang kernel daemon (API server + kernel).
+    /// Start the Rig kernel daemon (API server + kernel).
     Start {
         /// Auto-approve all tool calls (no confirmation prompts).
         #[arg(long)]
@@ -130,7 +130,7 @@ enum Commands {
     /// Manage event triggers (list, create, delete) [*].
     #[command(subcommand)]
     Trigger(TriggerCommands),
-    /// Migrate from another agent framework to OpenFang.
+    /// Migrate from another agent framework to Rig.
     Migrate(MigrateArgs),
     /// Manage skills (install, list, search, create, remove) [*].
     #[command(subcommand)]
@@ -223,7 +223,7 @@ enum Commands {
         #[arg(long)]
         json: bool,
     },
-    /// Tail the OpenFang log file.
+    /// Tail the Rig log file.
     Logs {
         /// Number of lines to show.
         #[arg(long, default_value = "50")]
@@ -288,7 +288,7 @@ enum Commands {
         #[arg(long)]
         confirm: bool,
     },
-    /// Completely uninstall OpenFang from your system.
+    /// Completely uninstall Rig from your system.
     Uninstall {
         /// Skip confirmation prompt (also --yes).
         #[arg(long, alias = "yes")]
@@ -876,7 +876,7 @@ fn init_tracing_stderr() {
         .init();
 }
 
-/// Get the OpenFang home directory, respecting RIG_HOME env var.
+/// Get the Rig home directory, respecting RIG_HOME env var.
 fn cli_rig_home() -> std::path::PathBuf {
     if let Ok(home) = std::env::var("RIG_HOME") {
         return std::path::PathBuf::from(home);
@@ -1321,7 +1321,7 @@ fn cmd_init_quick(rig_dir: &std::path::Path) {
     write_config_if_missing(rig_dir, provider, model, api_key_env);
 
     ui::blank();
-    ui::success("OpenFang initialized (quick mode)");
+    ui::success("Rig initialized (quick mode)");
     ui::kv("Provider", provider);
     ui::kv("Model", model);
     ui::blank();
@@ -1344,7 +1344,7 @@ fn cmd_init_interactive(rig_dir: &std::path::Path) {
         } => {
             // Print summary after TUI restores terminal
             ui::blank();
-            ui::success("OpenFang initialized!");
+            ui::success("Rig initialized!");
             ui::kv("Provider", &provider);
             ui::kv("Model", &model);
 
@@ -1403,7 +1403,7 @@ fn launch_desktop_app(_rig_dir: &std::path::Path) {
 
     match desktop_bin {
         Some(ref path) if path.exists() => {
-            ui::success("Launching OpenFang Desktop...");
+            ui::success("Launching Rig Desktop...");
             match std::process::Command::new(path)
                 .stdin(std::process::Stdio::null())
                 .stdout(std::process::Stdio::null())
@@ -1534,7 +1534,7 @@ fn write_config_if_missing(
         ui::check_ok(&format!("Config already exists: {}", config_path.display()));
     } else {
         let default_config = format!(
-            r#"# OpenFang Agent OS configuration
+            r#"# Rig Agent OS configuration
 # See https://github.com/toxicwind/rig for documentation
 
 # For Docker, change to "0.0.0.0:4200" or set RIG_LISTEN env var.
@@ -1582,7 +1582,7 @@ fn cmd_start(config: Option<PathBuf>, yolo: bool) {
             kernel_config.approval.auto_approve = true;
             kernel_config.approval.apply_shorthands();
         }
-        let kernel = match OpenFangKernel::boot_with_config(kernel_config) {
+        let kernel = match RigKernel::boot_with_config(kernel_config) {
             Ok(k) => k,
             Err(e) => {
                 boot_kernel_error(&e);
@@ -1626,7 +1626,7 @@ fn cmd_start(config: Option<PathBuf>, yolo: bool) {
         }
 
         ui::blank();
-        println!("  OpenFang daemon stopped.");
+        println!("  Rig daemon stopped.");
     });
 }
 
@@ -1724,7 +1724,7 @@ fn boot_kernel_error(e: &rig_kernel::error::KernelError) {
     } else if msg.contains("database") || msg.contains("locked") || msg.contains("sqlite") {
         ui::error_with_fix(
             "Database error (file may be locked)",
-            "Check if another OpenFang process is running: rig status",
+            "Check if another Rig process is running: rig status",
         );
     } else if msg.contains("key") || msg.contains("API") || msg.contains("auth") {
         ui::error_with_fix(
@@ -2097,7 +2097,7 @@ fn cmd_status(config: Option<PathBuf>, json: bool) {
             return;
         }
 
-        ui::section("OpenFang Daemon Status");
+        ui::section("Rig Daemon Status");
         ui::blank();
         ui::kv_ok("Status", body["status"].as_str().unwrap_or("?"));
         ui::kv(
@@ -2150,7 +2150,7 @@ fn cmd_status(config: Option<PathBuf>, json: bool) {
             return;
         }
 
-        ui::section("OpenFang Status (in-process)");
+        ui::section("Rig Status (in-process)");
         ui::blank();
         ui::kv("Agents", &agent_count.to_string());
         ui::kv("Provider", &kernel.config.default_model.provider);
@@ -2176,7 +2176,7 @@ fn cmd_doctor(json: bool, repair: bool) {
     let mut repaired = false;
 
     if !json {
-        ui::step("OpenFang Doctor");
+        ui::step("Rig Doctor");
         println!();
     }
 
@@ -2184,15 +2184,15 @@ fn cmd_doctor(json: bool, repair: bool) {
     if let Some(_h) = &home {
         let rig_dir = cli_rig_home();
 
-        // --- Check 1: OpenFang directory ---
+        // --- Check 1: Rig directory ---
         if rig_dir.exists() {
             if !json {
-                ui::check_ok(&format!("OpenFang directory: {}", rig_dir.display()));
+                ui::check_ok(&format!("Rig directory: {}", rig_dir.display()));
             }
             checks.push(serde_json::json!({"check": "rig_dir", "status": "ok", "path": rig_dir.display().to_string()}));
         } else if repair {
             if !json {
-                ui::check_fail("OpenFang directory not found.");
+                ui::check_fail("Rig directory not found.");
             }
             let answer = prompt_input("    Create it now? [Y/n] ");
             if answer.is_empty() || answer.starts_with('y') || answer.starts_with('Y') {
@@ -2202,7 +2202,7 @@ fn cmd_doctor(json: bool, repair: bool) {
                         let _ = std::fs::create_dir_all(rig_dir.join(sub));
                     }
                     if !json {
-                        ui::check_ok("Created OpenFang directory");
+                        ui::check_ok("Created Rig directory");
                     }
                     repaired = true;
                 } else {
@@ -2217,7 +2217,7 @@ fn cmd_doctor(json: bool, repair: bool) {
             checks.push(serde_json::json!({"check": "rig_dir", "status": if repaired { "repaired" } else { "fail" }}));
         } else {
             if !json {
-                ui::check_fail("OpenFang directory not found. Run `rig init` first.");
+                ui::check_fail("Rig directory not found. Run `rig init` first.");
             }
             checks.push(serde_json::json!({"check": "rig_dir", "status": "fail"}));
             all_ok = false;
@@ -2298,7 +2298,7 @@ fn cmd_doctor(json: bool, repair: bool) {
             if answer.is_empty() || answer.starts_with('y') || answer.starts_with('Y') {
                 let (provider, api_key_env, model) = detect_best_provider();
                 let default_config = format!(
-                    r#"# OpenFang Agent OS configuration
+                    r#"# Rig Agent OS configuration
 # See https://github.com/toxicwind/rig for documentation
 
 # For Docker, change to "0.0.0.0:4200" or set RIG_LISTEN env var.
@@ -3068,7 +3068,7 @@ decay_rate = 0.05
     } else {
         println!();
         if all_ok {
-            ui::success("All checks passed! OpenFang is ready.");
+            ui::success("All checks passed! Rig is ready.");
             if find_daemon().is_none() {
                 ui::hint("Start the daemon: rig start");
             }
@@ -3538,8 +3538,8 @@ fn require_daemon(command: &str) -> String {
     })
 }
 
-fn boot_kernel(config: Option<PathBuf>) -> OpenFangKernel {
-    match OpenFangKernel::boot(config.as_deref()) {
+fn boot_kernel(config: Option<PathBuf>) -> RigKernel {
+    match RigKernel::boot(config.as_deref()) {
         Ok(k) => k,
         Err(e) => {
             boot_kernel_error(&e);
@@ -3906,7 +3906,7 @@ capabilities = []
     let entry_content = match runtime.as_str() {
         "python" => format!(
             r#"#!/usr/bin/env python3
-"""OpenFang skill: {name}"""
+"""Rig skill: {name}"""
 import json
 import sys
 
@@ -6595,7 +6595,7 @@ fn cmd_devices_pair() {
         ui::section("Device Pairing");
         ui::blank();
         // Render a simple text-based QR representation
-        println!("  Scan this QR code with the OpenFang mobile app:");
+        println!("  Scan this QR code with the Rig mobile app:");
         ui::blank();
         println!("  {qr}");
         ui::blank();
@@ -6761,7 +6761,7 @@ fn cmd_system_info(json: bool) {
             );
             return;
         }
-        ui::section("OpenFang System Info");
+        ui::section("Rig System Info");
         ui::blank();
         ui::kv("Version", env!("CARGO_PKG_VERSION"));
         ui::kv("Status", body["status"].as_str().unwrap_or("?"));
@@ -6788,7 +6788,7 @@ fn cmd_system_info(json: bool) {
             );
             return;
         }
-        ui::section("OpenFang System Info");
+        ui::section("Rig System Info");
         ui::blank();
         ui::kv("Version", env!("CARGO_PKG_VERSION"));
         ui::kv_warn("Daemon", "NOT RUNNING");
@@ -6850,7 +6850,7 @@ fn cmd_uninstall(confirm: bool, keep_config: bool) {
     println!();
     println!(
         "  {}",
-        "This will completely uninstall OpenFang from your system."
+        "This will completely uninstall Rig from your system."
             .bold()
             .red()
     );
@@ -6948,7 +6948,7 @@ fn cmd_uninstall(confirm: bool, keep_config: bool) {
     }
 
     println!();
-    ui::success("OpenFang has been uninstalled. Goodbye!");
+    ui::success("Rig has been uninstalled. Goodbye!");
 }
 
 /// Remove auto-start / launch-agent / systemd entries.
@@ -6962,7 +6962,7 @@ fn remove_autostart_entries(home: &std::path::Path) {
                 "delete",
                 r"HKCU\Software\Microsoft\Windows\CurrentVersion\Run",
                 "/v",
-                "OpenFang",
+                "Rig",
                 "/f",
             ])
             .output();
@@ -6991,7 +6991,7 @@ fn remove_autostart_entries(home: &std::path::Path) {
 
     #[cfg(target_os = "linux")]
     {
-        let desktop_file = home.join(".config/autostart/OpenFang.desktop");
+        let desktop_file = home.join(".config/autostart/Rig.desktop");
         if desktop_file.exists() {
             match std::fs::remove_file(&desktop_file) {
                 Ok(()) => ui::success("Removed Linux autostart entry"),

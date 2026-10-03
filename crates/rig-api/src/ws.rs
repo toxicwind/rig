@@ -19,7 +19,7 @@ use axum::response::IntoResponse;
 use dashmap::DashMap;
 use futures::stream::SplitSink;
 use futures::{SinkExt, StreamExt};
-use rig_kernel::OpenFangKernel;
+use rig_kernel::RigKernel;
 use rig_runtime::kernel_handle::KernelHandle;
 use rig_runtime::llm_driver::StreamEvent;
 use rig_runtime::llm_errors;
@@ -1522,7 +1522,7 @@ pub fn strip_think_tags(text: &str) -> String {
 ///
 /// This runs independently of the channel bridge — it uses the kernel's
 /// event bus to receive `CronJobExecuted` events and pushes them to WS.
-pub fn start_ws_cron_broadcaster(kernel: Arc<OpenFangKernel>) {
+pub fn start_ws_cron_broadcaster(kernel: Arc<RigKernel>) {
     tokio::spawn(async move {
         let mut rx = kernel.event_bus.subscribe_all();
         loop {

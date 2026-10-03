@@ -1,4 +1,4 @@
-//! Core kernel for the OpenFang Agent Operating System.
+//! Core kernel for the Rig Agent Operating System.
 //!
 //! The kernel manages agent lifecycles, memory, permissions, scheduling,
 //! and inter-agent communication.
@@ -27,4 +27,4 @@ pub mod wizard;
 pub mod workflow;
 
 pub use kernel::DeliveryTracker;
-pub use kernel::OpenFangKernel;
+pub use kernel::RigKernel;

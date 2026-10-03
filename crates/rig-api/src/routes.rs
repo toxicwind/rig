@@ -1,4 +1,4 @@
-//! Route handlers for the OpenFang API.
+//! Route handlers for the Rig API.
 
 use crate::types::*;
 use axum::extract::{Multipart, Path, Query, State};
@@ -10,7 +10,7 @@ use rig_kernel::triggers::{TriggerId, TriggerPattern};
 use rig_kernel::workflow::{
     ErrorMode, StepAgent, StepMode, Workflow, WorkflowId, WorkflowStep,
 };
-use rig_kernel::OpenFangKernel;
+use rig_kernel::RigKernel;
 use rig_runtime::kernel_handle::KernelHandle;
 use rig_runtime::tool_runner::builtin_tool_definitions;
 use rig_types::agent::{AgentId, AgentIdentity, AgentManifest};
@@ -23,7 +23,7 @@ use std::time::Instant;
 /// The kernel is wrapped in Arc so it can serve as both the main kernel
 /// and the KernelHandle for inter-agent tool access.
 pub struct AppState {
-    pub kernel: Arc<OpenFangKernel>,
+    pub kernel: Arc<RigKernel>,
     pub started_at: Instant,
     /// Optional peer registry for OFP mesh networking status.
     pub peer_registry: Option<Arc<rig_wire::registry::PeerRegistry>>,
@@ -307,7 +307,7 @@ pub fn resolve_attachments(
 /// This injects image content blocks into the session BEFORE the kernel
 /// adds the text user message, so the LLM receives: [..., User(images), User(text)].
 pub fn inject_attachments_into_session(
-    kernel: &OpenFangKernel,
+    kernel: &RigKernel,
     agent_id: AgentId,
     image_blocks: Vec<rig_types::message::ContentBlock>,
 ) {
@@ -2967,7 +2967,7 @@ pub async fn test_channel(
 /// Send a real test message to a specific channel/chat on the given platform.
 async fn send_channel_test_message(channel_name: &str, target_id: &str) -> Result<(), String> {
     let client = reqwest::Client::new();
-    let test_msg = "OpenFang test message — your channel is connected!";
+    let test_msg = "Rig test message — your channel is connected!";
 
     match channel_name {
         "discord" => {
@@ -3530,7 +3530,7 @@ pub async fn health_detail(State(state): State<Arc<AppState>>) -> impl IntoRespo
 
 /// GET /api/metrics — Prometheus text-format metrics.
 ///
-/// Returns counters and gauges for monitoring OpenFang in production:
+/// Returns counters and gauges for monitoring Rig in production:
 /// - `rig_agents_active` — number of active agents
 /// - `rig_uptime_seconds` — seconds since daemon started
 /// - `rig_tokens_total` — total tokens consumed (per agent)
@@ -3592,7 +3592,7 @@ pub async fn prometheus_metrics(State(state): State<Arc<AppState>>) -> impl Into
     ));
 
     // Version info
-    out.push_str("# HELP rig_info OpenFang version and build info.\n");
+    out.push_str("# HELP rig_info Rig version and build info.\n");
     out.push_str("# TYPE rig_info gauge\n");
     out.push_str(&format!(
         "rig_info{{version=\"{}\"}} 1\n",
@@ -6704,7 +6704,7 @@ pub async fn a2a_agent_card(State(state): State<Arc<AppState>>) -> impl IntoResp
     } else {
         let card = serde_json::json!({
             "name": "rig",
-            "description": "OpenFang Agent OS — no agents spawned yet",
+            "description": "Rig Agent OS — no agents spawned yet",
             "url": format!("{base_url}/a2a"),
             "version": "0.1.0",
             "capabilities": { "streaming": true },
@@ -7406,8 +7406,8 @@ pub async fn set_model(
             // provider) are the caller's mistake: 400, not 500, so CLI
             // agents can distinguish "fix your input" from "server broke".
             let status = match &e {
-                rig_kernel::error::KernelError::OpenFang(
-                    rig_types::error::OpenFangError::InvalidInput(_),
+                rig_kernel::error::KernelError::Rig(
+                    rig_types::error::RigError::InvalidInput(_),
                 ) => StatusCode::BAD_REQUEST,
                 _ => StatusCode::INTERNAL_SERVER_ERROR,
             };
@@ -9146,7 +9146,7 @@ pub async fn reload_integrations(State(state): State<Arc<AppState>>) -> impl Int
 /// Convert an internal `CronJob` into the legacy `/api/schedules` response
 /// shape so existing dashboard code keeps working.
 fn cron_job_to_schedule_view(
-    kernel: &OpenFangKernel,
+    kernel: &RigKernel,
     job: &rig_types::scheduler::CronJob,
 ) -> serde_json::Value {
     use rig_types::scheduler::{CronAction, CronSchedule};
@@ -11855,7 +11855,7 @@ pub async fn pairing_notify(
     let title = body
         .get("title")
         .and_then(|v| v.as_str())
-        .unwrap_or("OpenFang");
+        .unwrap_or("Rig");
     let message = body.get("message").and_then(|v| v.as_str()).unwrap_or("");
     if message.is_empty() {
         return (

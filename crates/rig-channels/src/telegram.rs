@@ -1,4 +1,4 @@
-//! Telegram Bot API adapter for the OpenFang channel bridge.
+//! Telegram Bot API adapter for the Rig channel bridge.
 //!
 //! Uses long-polling via `getUpdates` with exponential backoff on failures.
 //! No external Telegram crate — just `reqwest` for full control over error handling.

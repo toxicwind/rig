@@ -7,7 +7,7 @@ use axum::Router;
 use rig_api::middleware;
 use rig_api::routes::{self, AppState};
 use rig_api::server::{read_daemon_info, DaemonInfo};
-use rig_kernel::OpenFangKernel;
+use rig_kernel::RigKernel;
 use rig_types::config::{DefaultModelConfig, KernelConfig};
 use std::sync::Arc;
 use std::time::Instant;
@@ -103,7 +103,7 @@ async fn test_full_daemon_lifecycle() {
         ..KernelConfig::default()
     };
 
-    let kernel = OpenFangKernel::boot_with_config(config).expect("Kernel should boot");
+    let kernel = RigKernel::boot_with_config(config).expect("Kernel should boot");
     let kernel = Arc::new(kernel);
     kernel.set_self_handle();
 
@@ -231,7 +231,7 @@ async fn test_server_immediate_responsiveness() {
         ..KernelConfig::default()
     };
 
-    let kernel = OpenFangKernel::boot_with_config(config).unwrap();
+    let kernel = RigKernel::boot_with_config(config).unwrap();
     let kernel = Arc::new(kernel);
 
     let state = Arc::new(AppState {

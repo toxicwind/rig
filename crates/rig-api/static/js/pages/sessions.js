@@ -1,4 +1,4 @@
-// OpenFang Sessions Page — Session listing + Memory tab
+// Rig Sessions Page — Session listing + Memory tab
 'use strict';
 
 function sessionsPage() {
@@ -26,7 +26,7 @@ function sessionsPage() {
       this.loading = true;
       this.loadError = '';
       try {
-        var data = await OpenFangAPI.get('/api/sessions');
+        var data = await RigAPI.get('/api/sessions');
         var sessions = data.sessions || [];
         var agents = Alpine.store('app').agents;
         var agentMap = {};
@@ -65,16 +65,16 @@ function sessionsPage() {
     deleteSession(sessionId) {
       var self = this;
       var t = window.i18n ? window.i18n.t.bind(window.i18n) : function(k) { return k; };
-      OpenFangToast.confirm(
+      RigToast.confirm(
         t('sessions.delete_session') || 'Delete Session',
         t('sessions.delete_confirm') || 'This will permanently remove the session and its messages.',
         async function() {
           try {
-            await OpenFangAPI.del('/api/sessions/' + sessionId);
+            await RigAPI.del('/api/sessions/' + sessionId);
             self.sessions = self.sessions.filter(function(s) { return s.session_id !== sessionId; });
-            OpenFangToast.success('Session deleted');
+            RigToast.success('Session deleted');
           } catch(e) {
-            OpenFangToast.error('Failed to delete session: ' + e.message);
+            RigToast.error('Failed to delete session: ' + e.message);
           }
         }
       );
@@ -86,7 +86,7 @@ function sessionsPage() {
       this.memLoading = true;
       this.memLoadError = '';
       try {
-        var data = await OpenFangAPI.get('/api/memory/agents/' + this.memAgentId + '/kv');
+        var data = await RigAPI.get('/api/memory/agents/' + this.memAgentId + '/kv');
         this.kvPairs = data.kv_pairs || [];
       } catch(e) {
         this.kvPairs = [];
@@ -100,30 +100,30 @@ function sessionsPage() {
       var value;
       try { value = JSON.parse(this.newValue); } catch(e) { value = this.newValue; }
       try {
-        await OpenFangAPI.put('/api/memory/agents/' + this.memAgentId + '/kv/' + encodeURIComponent(this.newKey), { value: value });
+        await RigAPI.put('/api/memory/agents/' + this.memAgentId + '/kv/' + encodeURIComponent(this.newKey), { value: value });
         this.showAdd = false;
-        OpenFangToast.success('Key "' + this.newKey + '" saved');
+        RigToast.success('Key "' + this.newKey + '" saved');
         this.newKey = '';
         this.newValue = '""';
         await this.loadKv();
       } catch(e) {
-        OpenFangToast.error('Failed to save key: ' + e.message);
+        RigToast.error('Failed to save key: ' + e.message);
       }
     },
 
     deleteKey(key) {
       var self = this;
       var t = window.i18n ? window.i18n.t.bind(window.i18n) : function(k) { return k; };
-      OpenFangToast.confirm(
+      RigToast.confirm(
         t('sessions.delete_key') || 'Delete Key',
         (t('sessions.delete_key_confirm') || 'Delete key') + ' "' + key + '"? This cannot be undone.',
         async function() {
           try {
-            await OpenFangAPI.del('/api/memory/agents/' + self.memAgentId + '/kv/' + encodeURIComponent(key));
-            OpenFangToast.success('Key "' + key + '" deleted');
+            await RigAPI.del('/api/memory/agents/' + self.memAgentId + '/kv/' + encodeURIComponent(key));
+            RigToast.success('Key "' + key + '" deleted');
             await self.loadKv();
           } catch(e) {
-            OpenFangToast.error('Failed to delete key: ' + e.message);
+            RigToast.error('Failed to delete key: ' + e.message);
           }
         }
       );
@@ -144,13 +144,13 @@ function sessionsPage() {
       var value;
       try { value = JSON.parse(this.editingValue); } catch(e) { value = this.editingValue; }
       try {
-        await OpenFangAPI.put('/api/memory/agents/' + this.memAgentId + '/kv/' + encodeURIComponent(this.editingKey), { value: value });
-        OpenFangToast.success('Key "' + this.editingKey + '" updated');
+        await RigAPI.put('/api/memory/agents/' + this.memAgentId + '/kv/' + encodeURIComponent(this.editingKey), { value: value });
+        RigToast.success('Key "' + this.editingKey + '" updated');
         this.editingKey = null;
         this.editingValue = '';
         await this.loadKv();
       } catch(e) {
-        OpenFangToast.error('Failed to save: ' + e.message);
+        RigToast.error('Failed to save: ' + e.message);
       }
     }
   };

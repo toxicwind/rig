@@ -1,4 +1,4 @@
-//! Configuration types for the OpenFang kernel.
+//! Configuration types for the Rig kernel.
 
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -969,7 +969,7 @@ pub struct ExecPolicy {
     /// produce no stdout/stderr output for this duration. Default: 30.
     #[serde(default = "default_no_output_timeout")]
     pub no_output_timeout_secs: u64,
-    /// Environment variables to forward from the OpenFang process into
+    /// Environment variables to forward from the Rig process into
     /// `shell_exec` subprocesses.
     ///
     /// By default, subprocesses run with `env_clear()` and only receive a
@@ -1143,7 +1143,7 @@ impl Default for ThinkingConfig {
 #[derive(Clone, Serialize, Deserialize)]
 #[serde(default)]
 pub struct KernelConfig {
-    /// OpenFang home directory (default: ~/.rig).
+    /// Rig home directory (default: ~/.rig).
     pub home_dir: PathBuf,
     /// Data directory for databases (default: ~/.rig/data).
     pub data_dir: PathBuf,
@@ -1672,7 +1672,7 @@ impl std::fmt::Debug for KernelConfig {
     }
 }
 
-/// Resolve the OpenFang home directory.
+/// Resolve the Rig home directory.
 ///
 /// Priority: `RIG_HOME` env var > `~/.rig`.
 fn rig_home_dir() -> PathBuf {

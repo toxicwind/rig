@@ -1,4 +1,4 @@
-# OpenFang installer for Windows
+# Rig installer for Windows
 # Usage: iwr -useb https://rig.sh/install.ps1 | iex
 #   or:  powershell -c "irm https://rig.sh/install.ps1 | iex"
 #
@@ -14,7 +14,7 @@ $InstallDir = if ($env:RIG_INSTALL_DIR) { $env:RIG_INSTALL_DIR } else { $Default
 
 function Write-Banner {
     Write-Host ""
-    Write-Host "  OpenFang Installer" -ForegroundColor Cyan
+    Write-Host "  Rig Installer" -ForegroundColor Cyan
     Write-Host "  ==================" -ForegroundColor Cyan
     Write-Host ""
 }
@@ -77,7 +77,7 @@ function Get-LatestVersion {
     }
 }
 
-function Install-OpenFang {
+function Install-Rig {
     Write-Banner
 
     $arch = Get-Architecture
@@ -87,7 +87,7 @@ function Install-OpenFang {
     $url = "https://github.com/$Repo/releases/download/$version/$archive"
     $checksumUrl = "$url.sha256"
 
-    Write-Host "  Installing OpenFang $version for $target..."
+    Write-Host "  Installing Rig $version for $target..."
 
     # Create install directory
     if (-not (Test-Path $InstallDir)) {
@@ -171,11 +171,11 @@ function Install-OpenFang {
         try {
             $versionOutput = & $installedExe --version 2>&1
             Write-Host ""
-            Write-Host "  OpenFang installed successfully! ($versionOutput)" -ForegroundColor Green
+            Write-Host "  Rig installed successfully! ($versionOutput)" -ForegroundColor Green
         }
         catch {
             Write-Host ""
-            Write-Host "  OpenFang binary installed to $installedExe" -ForegroundColor Green
+            Write-Host "  Rig binary installed to $installedExe" -ForegroundColor Green
         }
     }
 
@@ -188,4 +188,4 @@ function Install-OpenFang {
     Write-Host ""
 }
 
-Install-OpenFang
+Install-Rig

@@ -1,4 +1,4 @@
-//! Ratatui TUI for OpenFang interactive mode.
+//! Ratatui TUI for Rig interactive mode.
 //!
 //! Two-level navigation: Phase::Boot (Welcome/Wizard) → Phase::Main with 16 tabs.
 
@@ -8,7 +8,7 @@ pub mod screens;
 pub mod theme;
 
 use event::{AppEvent, BackendRef};
-use rig_kernel::OpenFangKernel;
+use rig_kernel::RigKernel;
 use rig_runtime::llm_driver::StreamEvent;
 use rig_types::agent::AgentId;
 use rig_types::commands::{self, Surfaces};
@@ -116,7 +116,7 @@ impl Tab {
 
 enum Backend {
     Daemon { base_url: String },
-    InProcess { kernel: Arc<OpenFangKernel> },
+    InProcess { kernel: Arc<RigKernel> },
     None,
 }
 
@@ -1225,7 +1225,7 @@ impl App {
 
     // ─── Kernel lifecycle ────────────────────────────────────────────────────
 
-    fn handle_kernel_ready(&mut self, kernel: Arc<OpenFangKernel>) {
+    fn handle_kernel_ready(&mut self, kernel: Arc<RigKernel>) {
         self.kernel_booting = false;
         self.backend = Backend::InProcess { kernel };
         self.agents.reset();

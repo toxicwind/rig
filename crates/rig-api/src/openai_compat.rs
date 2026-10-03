@@ -1,6 +1,6 @@
 //! OpenAI-compatible `/v1/chat/completions` API endpoint.
 //!
-//! Allows any OpenAI-compatible client library to talk to OpenFang agents.
+//! Allows any OpenAI-compatible client library to talk to Rig agents.
 //! The `model` field resolves to an agent (by name, UUID, or `rig:<name>`),
 //! and the messages are forwarded to the agent's LLM loop.
 //!

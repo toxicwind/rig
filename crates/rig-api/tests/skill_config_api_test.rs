@@ -11,7 +11,7 @@
 use axum::Router;
 use rig_api::middleware;
 use rig_api::routes::{self, AppState};
-use rig_kernel::OpenFangKernel;
+use rig_kernel::RigKernel;
 use rig_types::config::{DefaultModelConfig, KernelConfig};
 use std::sync::Arc;
 use std::time::Instant;
@@ -84,7 +84,7 @@ async fn start_test_server() -> TestServer {
     // Plant synthetic skill BEFORE booting so the initial skill load picks it up.
     plant_skill_with_config(&home, "test-config-skill");
 
-    let kernel = OpenFangKernel::boot_with_config(config).expect("kernel boot");
+    let kernel = RigKernel::boot_with_config(config).expect("kernel boot");
     let kernel = Arc::new(kernel);
     kernel.set_self_handle();
 

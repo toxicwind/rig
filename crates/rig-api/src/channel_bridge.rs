@@ -1,6 +1,6 @@
-//! Channel bridge wiring — connects the OpenFang kernel to channel adapters.
+//! Channel bridge wiring — connects the Rig kernel to channel adapters.
 //!
-//! Implements `ChannelBridgeHandle` on `OpenFangKernel` and provides the
+//! Implements `ChannelBridgeHandle` on `RigKernel` and provides the
 //! `start_channel_bridge()` entry point called by the daemon.
 
 use rig_channels::bridge::{BridgeManager, ChannelBridgeHandle};
@@ -54,7 +54,7 @@ use rig_channels::mumble::MumbleAdapter;
 use rig_channels::ntfy::NtfyAdapter;
 use rig_channels::webhook::WebhookAdapter;
 use rig_channels::wecom::WeComAdapter;
-use rig_kernel::OpenFangKernel;
+use rig_kernel::RigKernel;
 use rig_runtime::kernel_handle::KernelHandle;
 use rig_types::agent::AgentId;
 use std::sync::Arc;
@@ -63,9 +63,9 @@ use tracing::{error, info, warn};
 
 use rig_runtime::str_utils::safe_truncate_str;
 
-/// Wraps `OpenFangKernel` to implement `ChannelBridgeHandle`.
+/// Wraps `RigKernel` to implement `ChannelBridgeHandle`.
 pub struct KernelBridgeAdapter {
-    kernel: Arc<OpenFangKernel>,
+    kernel: Arc<RigKernel>,
     started_at: Instant,
 }
 
@@ -161,14 +161,14 @@ impl ChannelBridgeHandle for KernelBridgeAdapter {
         let mins = (secs % 3600) / 60;
         if hours > 0 {
             format!(
-                "OpenFang status: {}h {}m uptime, {} agent(s)",
+                "Rig status: {}h {}m uptime, {} agent(s)",
                 hours,
                 mins,
                 agents.len()
             )
         } else {
             format!(
-                "OpenFang status: {}m uptime, {} agent(s)",
+                "Rig status: {}m uptime, {} agent(s)",
                 mins,
                 agents.len()
             )
@@ -901,7 +901,7 @@ impl ChannelBridgeHandle for KernelBridgeAdapter {
         recipient: &str,
         message: &str,
     ) -> Result<(), String> {
-        <OpenFangKernel as KernelHandle>::send_channel_message(
+        <RigKernel as KernelHandle>::send_channel_message(
             &self.kernel,
             channel_type,
             recipient,
@@ -1092,7 +1092,7 @@ fn read_token(env_var_or_token: &str, adapter_name: &str) -> Option<String> {
 ///
 /// Returns `Some(BridgeManager)` if any channels were configured and started,
 /// or `None` if no channels are configured.
-pub async fn start_channel_bridge(kernel: Arc<OpenFangKernel>) -> Option<BridgeManager> {
+pub async fn start_channel_bridge(kernel: Arc<RigKernel>) -> Option<BridgeManager> {
     let channels = kernel.config.channels.clone();
     let (bridge, _names) = start_channel_bridge_with_config(kernel, &channels).await;
     bridge
@@ -1102,7 +1102,7 @@ pub async fn start_channel_bridge(kernel: Arc<OpenFangKernel>) -> Option<BridgeM
 ///
 /// Returns `(Option<BridgeManager>, Vec<started_channel_names>)`.
 pub async fn start_channel_bridge_with_config(
-    kernel: Arc<OpenFangKernel>,
+    kernel: Arc<RigKernel>,
     config: &rig_types::config::ChannelsConfig,
 ) -> (Option<BridgeManager>, Vec<String>) {
     let has_any = config.telegram.is_some()

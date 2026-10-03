@@ -1,4 +1,4 @@
-// OpenFang Overview Dashboard — Landing page with system stats + provider status
+// Rig Overview Dashboard — Landing page with system stats + provider status
 'use strict';
 
 function overviewPage() {
@@ -70,19 +70,19 @@ function overviewPage() {
 
     async loadHealth() {
       try {
-        this.health = await OpenFangAPI.get('/api/health');
+        this.health = await RigAPI.get('/api/health');
       } catch(e) { this.health = { status: 'unreachable' }; }
     },
 
     async loadStatus() {
       try {
-        this.status = await OpenFangAPI.get('/api/status');
+        this.status = await RigAPI.get('/api/status');
       } catch(e) { this.status = {}; throw e; }
     },
 
     async loadUsage() {
       try {
-        var data = await OpenFangAPI.get('/api/usage');
+        var data = await RigAPI.get('/api/usage');
         var agents = data.agents || [];
         var totalTokens = 0;
         var totalTools = 0;
@@ -105,35 +105,35 @@ function overviewPage() {
 
     async loadAudit() {
       try {
-        var data = await OpenFangAPI.get('/api/audit/recent?n=8');
+        var data = await RigAPI.get('/api/audit/recent?n=8');
         this.recentAudit = data.entries || [];
       } catch(e) { this.recentAudit = []; }
     },
 
     async loadChannels() {
       try {
-        var data = await OpenFangAPI.get('/api/channels');
+        var data = await RigAPI.get('/api/channels');
         this.channels = (data.channels || []).filter(function(ch) { return ch.has_token; });
       } catch(e) { this.channels = []; }
     },
 
     async loadProviders() {
       try {
-        var data = await OpenFangAPI.get('/api/providers');
+        var data = await RigAPI.get('/api/providers');
         this.providers = data.providers || [];
       } catch(e) { this.providers = []; }
     },
 
     async loadMcpServers() {
       try {
-        var data = await OpenFangAPI.get('/api/mcp/servers');
+        var data = await RigAPI.get('/api/mcp/servers');
         this.mcpServers = data.servers || [];
       } catch(e) { this.mcpServers = []; }
     },
 
     async loadSkills() {
       try {
-        var data = await OpenFangAPI.get('/api/skills');
+        var data = await RigAPI.get('/api/skills');
         this.skillCount = (data.skills || []).length;
       } catch(e) { this.skillCount = 0; }
     },

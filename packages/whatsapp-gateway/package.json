@@ -1,7 +1,7 @@
 {
   "name": "@rig/whatsapp-gateway",
   "version": "0.1.0",
-  "description": "WhatsApp Web gateway for OpenFang — QR code login, bidirectional messaging via Baileys",
+  "description": "WhatsApp Web gateway for Rig — QR code login, bidirectional messaging via Baileys",
   "bin": {
     "rig-whatsapp-gateway": "./index.js"
   },

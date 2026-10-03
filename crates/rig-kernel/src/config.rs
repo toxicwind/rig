@@ -346,7 +346,7 @@ pub fn default_config_path() -> PathBuf {
     rig_home().join("config.toml")
 }
 
-/// Get the OpenFang home directory.
+/// Get the Rig home directory.
 ///
 /// Priority: `RIG_HOME` env var > `~/.rig`.
 pub fn rig_home() -> PathBuf {
