@@ -12,7 +12,11 @@
 //!
 //! # Example
 //!
-//! ```
+//! ```ignore
+//! // `ignore`: rustdoc cannot link doctests on Windows runners with
+//! // rustc >= 1.98 (unresolved CRT externals such as `__chkstk` —
+//! // upstream toolchain regression). The behaviour shown here is covered
+//! // by the unit tests in `mod tests` below, which run on all platforms.
 //! use rig_types::commands::{self, Surfaces};
 //!
 //! let def = commands::resolve("NEW").expect("new is registered");
