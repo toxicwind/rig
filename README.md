@@ -65,7 +65,7 @@ Copy-paste to your first running agent in under 30 seconds:
 ```bash
 curl -fsSL https://raw.githubusercontent.com/toxicwind/rig/main/scripts/install.sh | sh
 rig init     # walks you through provider setup
-rig start    # kernel daemon live — API on 127.0.0.1:25196
+rig start    # kernel daemon live — API on 127.0.0.1:4200
 rig agent list   # see your agents
 ```
 
