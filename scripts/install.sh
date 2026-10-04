@@ -2,7 +2,7 @@
 # Rig installer (fork of OpenFang) — works on Linux, macOS, WSL
 # Fork note: upstream installer would fetch RightNow-AI/rig binaries.
 # This fork currently ships via `cargo build`; release binaries pending.
-# Usage: curl -sSf https://rig.sh | sh
+# Usage: curl -sSf https://raw.githubusercontent.com/toxicwind/rig/main/scripts/install.sh | sh
 #
 # Environment variables:
 #   RIG_INSTALL_DIR  — custom install directory (default: ~/.rig/bin)
@@ -27,7 +27,7 @@ detect_platform() {
         mingw*|msys*|cygwin*)
             echo ""
             echo "  For Windows, use PowerShell instead:"
-            echo "    irm https://rig.sh/install.ps1 | iex"
+            echo "    irm https://raw.githubusercontent.com/toxicwind/rig/main/scripts/install.ps1 | iex"
             echo ""
             echo "  Or download the .msi installer from:"
             echo "    https://github.com/$REPO/releases/latest"

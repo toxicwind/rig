@@ -63,7 +63,7 @@ Traditional agent frameworks wait for you to type something. Rig runs **autonomo
 Copy-paste to your first running agent in under 30 seconds:
 
 ```bash
-curl -fsSL https://rig.sh/install | sh
+curl -fsSL https://raw.githubusercontent.com/toxicwind/rig/main/scripts/install.sh | sh
 rig init     # walks you through provider setup
 rig start    # kernel daemon live — API on 127.0.0.1:25196
 rig agent list   # see your agents
@@ -81,7 +81,7 @@ rig hand activate researcher  # it starts working for you on a schedule
 <summary><strong>Windows (PowerShell)</strong></summary>
 
 ```powershell
-irm https://rig.sh/install.ps1 | iex
+irm https://raw.githubusercontent.com/toxicwind/rig/main/scripts/install.ps1 | iex
 rig init
 rig start
 ```

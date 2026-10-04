@@ -1,6 +1,6 @@
 [Unit]
 Description=Rig Agent OS Daemon
-Documentation=https://github.com/rig-ai/rig
+Documentation=https://github.com/toxicwind/rig
 After=network-online.target
 Wants=network-online.target
 

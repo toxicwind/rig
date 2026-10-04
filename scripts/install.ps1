@@ -1,6 +1,6 @@
 # Rig installer for Windows
-# Usage: iwr -useb https://rig.sh/install.ps1 | iex
-#   or:  powershell -c "irm https://rig.sh/install.ps1 | iex"
+# Usage: iwr -useb https://raw.githubusercontent.com/toxicwind/rig/main/scripts/install.ps1 | iex
+#   or:  powershell -c "irm https://raw.githubusercontent.com/toxicwind/rig/main/scripts/install.ps1 | iex"
 #
 # Flags (via environment variables):
 #   $env:RIG_INSTALL_DIR = custom install directory
