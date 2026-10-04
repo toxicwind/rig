@@ -508,7 +508,7 @@ impl ChannelBridgeHandle for KernelBridgeAdapter {
                 let job = rig_types::scheduler::CronJob {
                     id: rig_types::scheduler::CronJobId::new(),
                     agent_id: agent.id,
-                    name: format!("chat-{}", &agent.name),
+                    name: format!("chat-{}", agent.name),
                     enabled: true,
                     schedule: rig_types::scheduler::CronSchedule::Cron {
                         expr: cron_expr.clone(),

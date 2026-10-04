@@ -9895,10 +9895,12 @@ system_prompt = "You are a test agent."
 
     #[test]
     fn test_resolve_reload_config_path_prefers_boot_path() {
-        let mut cfg = KernelConfig::default();
-        cfg.config_path = Some(std::path::PathBuf::from(
-            "/home/toxic/sovereign/config/rig-25196.toml",
-        ));
+        let cfg = KernelConfig {
+            config_path: Some(std::path::PathBuf::from(
+                "/home/toxic/sovereign/config/rig-25196.toml",
+            )),
+            ..Default::default()
+        };
         assert_eq!(
             RigKernel::resolve_reload_config_path(&cfg),
             std::path::PathBuf::from("/home/toxic/sovereign/config/rig-25196.toml")
