@@ -444,7 +444,11 @@ async fn kill_tree_unix(pid: u32, grace_ms: u64) -> Result<bool, String> {
         .output()
         .await;
 
-    if group_kill.is_err() {
+    // Note: output() returns Ok even if `kill` exits non-zero, so check the
+    // exit status — not just whether the command spawned.
+    let group_kill_ok = group_kill.map(|o| o.status.success()).unwrap_or(false);
+
+    if !group_kill_ok {
         // Fallback: kill just the process.
         let _ = Command::new("kill")
             .args(["-TERM", &pid.to_string()])
