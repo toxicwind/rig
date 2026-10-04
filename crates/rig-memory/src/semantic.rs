@@ -104,10 +104,10 @@ impl SemanticStore {
             .map_err(|e| RigError::Internal(e.to_string()))?;
         let id = MemoryId::new();
         let now = Utc::now().to_rfc3339();
-        let source_str = serde_json::to_string(&source)
-            .map_err(|e| RigError::Serialization(e.to_string()))?;
-        let meta_str = serde_json::to_string(&metadata)
-            .map_err(|e| RigError::Serialization(e.to_string()))?;
+        let source_str =
+            serde_json::to_string(&source).map_err(|e| RigError::Serialization(e.to_string()))?;
+        let meta_str =
+            serde_json::to_string(&metadata).map_err(|e| RigError::Serialization(e.to_string()))?;
         let embedding_bytes: Option<Vec<u8>> = embedding.map(embedding_to_bytes);
 
         conn.execute(
@@ -500,8 +500,10 @@ fn embedding_to_bytes(embedding: &[f32]) -> Vec<u8> {
 /// Deserialize embedding from bytes.
 fn embedding_from_bytes(bytes: &[u8]) -> Vec<f32> {
     bytes
-        .chunks_exact(4)
-        .map(|chunk| f32::from_le_bytes([chunk[0], chunk[1], chunk[2], chunk[3]]))
+        .as_chunks::<4>()
+        .0
+        .iter()
+        .map(|chunk| f32::from_le_bytes(*chunk))
         .collect()
 }
 

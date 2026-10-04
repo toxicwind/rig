@@ -43,11 +43,7 @@ impl MemorySubstrate {
     /// When `memory_config.backend == "http"` and `http_url`/`http_token_env` are set,
     /// the semantic store routes `remember`/`recall` to the memory-api gateway.
     /// All other stores (KV, knowledge graph, sessions) remain local SQLite.
-    pub fn open(
-        db_path: &Path,
-        decay_rate: f32,
-        memory_config: &MemoryConfig,
-    ) -> RigResult<Self> {
+    pub fn open(db_path: &Path, decay_rate: f32, memory_config: &MemoryConfig) -> RigResult<Self> {
         let conn = Connection::open(db_path).map_err(|e| RigError::Memory(e.to_string()))?;
         conn.execute_batch("PRAGMA journal_mode=WAL; PRAGMA busy_timeout=5000;")
             .map_err(|e| RigError::Memory(e.to_string()))?;
@@ -105,8 +101,7 @@ impl MemorySubstrate {
 
     /// Create an in-memory substrate (for testing). Always uses SQLite backend.
     pub fn open_in_memory(decay_rate: f32) -> RigResult<Self> {
-        let conn =
-            Connection::open_in_memory().map_err(|e| RigError::Memory(e.to_string()))?;
+        let conn = Connection::open_in_memory().map_err(|e| RigError::Memory(e.to_string()))?;
         run_migrations(&conn).map_err(|e| RigError::Memory(e.to_string()))?;
         let shared = Arc::new(Mutex::new(conn));
 
@@ -233,11 +228,7 @@ impl MemorySubstrate {
     }
 
     /// Set or clear a session label.
-    pub fn set_session_label(
-        &self,
-        session_id: SessionId,
-        label: Option<&str>,
-    ) -> RigResult<()> {
+    pub fn set_session_label(&self, session_id: SessionId, label: Option<&str>) -> RigResult<()> {
         self.sessions.set_session_label(session_id, label)
     }
 
@@ -626,12 +617,7 @@ impl Memory for MemorySubstrate {
             .map_err(|e| RigError::Internal(e.to_string()))?
     }
 
-    async fn set(
-        &self,
-        agent_id: AgentId,
-        key: &str,
-        value: serde_json::Value,
-    ) -> RigResult<()> {
+    async fn set(&self, agent_id: AgentId, key: &str, value: serde_json::Value) -> RigResult<()> {
         let store = self.structured.clone();
         let key = key.to_string();
         tokio::task::spawn_blocking(move || store.set(agent_id, &key, value))

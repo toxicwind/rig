@@ -2,9 +2,7 @@
 //!
 //! Auto-cascades through available providers based on configured API keys.
 
-use rig_types::media::{
-    MediaAttachment, MediaConfig, MediaSource, MediaType, MediaUnderstanding,
-};
+use rig_types::media::{MediaAttachment, MediaConfig, MediaSource, MediaType, MediaUnderstanding};
 use std::sync::Arc;
 use tokio::sync::Semaphore;
 use tracing::info;
@@ -314,11 +312,8 @@ async fn transcribe_with_parakeet_mlx(
                 "audio/flac" => "flac",
                 _ => "wav",
             };
-            let path = std::env::temp_dir().join(format!(
-                "rig_parakeet_{}.{}",
-                uuid::Uuid::new_v4(),
-                ext
-            ));
+            let path =
+                std::env::temp_dir().join(format!("rig_parakeet_{}.{}", uuid::Uuid::new_v4(), ext));
             tokio::fs::write(&path, decoded)
                 .await
                 .map_err(|e| format!("Failed to write temp audio: {e}"))?;

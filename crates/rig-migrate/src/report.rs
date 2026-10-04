@@ -122,9 +122,7 @@ impl MigrationReport {
         // Next steps
         out.push_str("## Next Steps\n\n");
         out.push_str("1. Review imported agent manifests in `~/.rig/agents/`\n");
-        out.push_str(
-            "2. Review `~/.rig/secrets.env` — verify tokens were migrated correctly\n",
-        );
+        out.push_str("2. Review `~/.rig/secrets.env` — verify tokens were migrated correctly\n");
         out.push_str("3. Set any remaining API keys referenced in `~/.rig/config.toml`\n");
         out.push_str("4. Start the daemon: `rig start`\n");
         out.push_str("5. Test your agents: `rig agent list`\n");

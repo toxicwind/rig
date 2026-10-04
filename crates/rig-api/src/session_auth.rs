@@ -28,11 +28,9 @@ pub fn extract_session_cookie(headers: &axum::http::HeaderMap) -> Option<String>
         .get("cookie")
         .and_then(|v| v.to_str().ok())
         .and_then(|cookies| {
-            cookies.split(';').find_map(|c| {
-                c.trim()
-                    .strip_prefix("rig_session=")
-                    .map(|v| v.to_string())
-            })
+            cookies
+                .split(';')
+                .find_map(|c| c.trim().strip_prefix("rig_session=").map(|v| v.to_string()))
         })
 }
 
@@ -166,9 +164,7 @@ mod tests {
         let mut h = axum::http::HeaderMap::new();
         h.insert(
             "cookie",
-            "foo=bar; rig_session=abc.def.ghi; baz=qux"
-                .parse()
-                .unwrap(),
+            "foo=bar; rig_session=abc.def.ghi; baz=qux".parse().unwrap(),
         );
         assert_eq!(extract_session_cookie(&h).as_deref(), Some("abc.def.ghi"));
     }

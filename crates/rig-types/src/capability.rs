@@ -90,9 +90,7 @@ impl CapabilityCheck {
     pub fn require(&self) -> Result<(), crate::error::RigError> {
         match self {
             Self::Granted => Ok(()),
-            Self::Denied(reason) => Err(crate::error::RigError::CapabilityDenied(
-                reason.clone(),
-            )),
+            Self::Denied(reason) => Err(crate::error::RigError::CapabilityDenied(reason.clone())),
         }
     }
 }

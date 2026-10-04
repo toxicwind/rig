@@ -122,8 +122,7 @@ pub struct RigKernel {
     /// Device pairing manager.
     pub pairing: crate::pairing::PairingManager,
     /// Embedding driver for vector similarity search (None = text fallback).
-    pub embedding_driver:
-        Option<Arc<dyn rig_runtime::embedding::EmbeddingDriver + Send + Sync>>,
+    pub embedding_driver: Option<Arc<dyn rig_runtime::embedding::EmbeddingDriver + Send + Sync>>,
     /// Hand registry — curated autonomous capability packages.
     pub hand_registry: rig_hands::registry::HandRegistry,
     /// Credential resolver — vault → dotenv → env var priority chain.
@@ -159,11 +158,9 @@ pub struct RigKernel {
     /// WhatsApp Web gateway child process PID (for shutdown cleanup).
     pub whatsapp_gateway_pid: Arc<std::sync::Mutex<Option<u32>>>,
     /// Channel adapters registered at bridge startup (for proactive `channel_send` tool).
-    pub channel_adapters:
-        dashmap::DashMap<String, Arc<dyn rig_channels::types::ChannelAdapter>>,
+    pub channel_adapters: dashmap::DashMap<String, Arc<dyn rig_channels::types::ChannelAdapter>>,
     /// Hot-reloadable default model override (set via config hot-reload, read at agent spawn).
-    pub default_model_override:
-        std::sync::RwLock<Option<rig_types::config::DefaultModelConfig>>,
+    pub default_model_override: std::sync::RwLock<Option<rig_types::config::DefaultModelConfig>>,
     /// Hot-reloadable fallback provider chain override.
     ///
     /// Set by `apply_hot_actions(ReloadFallbackProviders)` when
@@ -240,10 +237,7 @@ impl DeliveryTracker {
     }
 
     /// Create a receipt for a successful send.
-    pub fn sent_receipt(
-        channel: &str,
-        recipient: &str,
-    ) -> rig_channels::types::DeliveryReceipt {
+    pub fn sent_receipt(channel: &str, recipient: &str) -> rig_channels::types::DeliveryReceipt {
         rig_channels::types::DeliveryReceipt {
             message_id: uuid::Uuid::new_v4().to_string(),
             channel: channel.to_string(),
@@ -573,8 +567,8 @@ impl RigKernel {
     fn fetch_copilot_models(rig_dir: &Path) -> Result<Vec<String>, String> {
         use rig_runtime::drivers::copilot;
 
-        let tokens = copilot::PersistedTokens::load(rig_dir)
-            .ok_or("No persisted Copilot tokens found")?;
+        let tokens =
+            copilot::PersistedTokens::load(rig_dir).ok_or("No persisted Copilot tokens found")?;
 
         let fetch = async {
             let http = reqwest::Client::builder()
@@ -809,7 +803,9 @@ impl RigKernel {
 
         // Use the chain, or create a stub driver if everything failed
         let driver: Arc<dyn LlmDriver> = if driver_chain.len() > 1 {
-            Arc::new(rig_runtime::drivers::fallback::FallbackDriver::with_models(model_chain))
+            Arc::new(rig_runtime::drivers::fallback::FallbackDriver::with_models(
+                model_chain,
+            ))
         } else if let Some(single) = driver_chain.into_iter().next() {
             single
         } else {
@@ -982,10 +978,7 @@ impl RigKernel {
                 config.web.clone(),
                 web_cache.clone(),
             ),
-            fetch: rig_runtime::web_fetch::WebFetchEngine::new(
-                config.web.fetch.clone(),
-                web_cache,
-            ),
+            fetch: rig_runtime::web_fetch::WebFetchEngine::new(config.web.fetch.clone(), web_cache),
         };
 
         // Auto-detect embedding driver for vector similarity search
@@ -1097,8 +1090,7 @@ impl RigKernel {
         let browser_ctx = rig_runtime::browser::BrowserManager::new(config.browser.clone());
 
         // Initialize media understanding engine
-        let media_engine =
-            rig_runtime::media_understanding::MediaEngine::new(config.media.clone());
+        let media_engine = rig_runtime::media_understanding::MediaEngine::new(config.media.clone());
         // Closes #1051: thread MediaConfig URL overrides into the TTS engine
         // so local OpenAI/ElevenLabs-compatible services can be targeted.
         let tts_engine = rig_runtime::tts::TtsEngine::new(config.tts.clone()).with_base_urls(
@@ -1300,9 +1292,7 @@ impl RigKernel {
                     if toml_path.exists() {
                         match std::fs::read_to_string(&toml_path) {
                             Ok(toml_str) => {
-                                match toml::from_str::<rig_types::agent::AgentManifest>(
-                                    &toml_str,
-                                ) {
+                                match toml::from_str::<rig_types::agent::AgentManifest>(&toml_str) {
                                     Ok(disk_manifest) => {
                                         // Capture whether agent.toml defines exec_policy
                                         // explicitly (so we don't blow it away with the
@@ -1751,9 +1741,7 @@ impl RigKernel {
         }
 
         // Persist agent to SQLite so it survives restarts
-        self.memory
-            .save_agent(&entry)
-            .map_err(KernelError::Rig)?;
+        self.memory.save_agent(&entry).map_err(KernelError::Rig)?;
 
         info!(agent = %name, id = %agent_id, persona = %persona_label, "Agent spawned");
 
@@ -1798,8 +1786,8 @@ impl RigKernel {
     /// Call this before `spawn_agent` when a `SignedManifest` JSON is provided
     /// alongside the TOML. Returns the verified manifest TOML string on success.
     pub fn verify_signed_manifest(&self, signed_json: &str) -> KernelResult<String> {
-        let signed: rig_types::manifest_signing::SignedManifest =
-            serde_json::from_str(signed_json).map_err(|e| {
+        let signed: rig_types::manifest_signing::SignedManifest = serde_json::from_str(signed_json)
+            .map_err(|e| {
                 KernelError::Rig(rig_types::error::RigError::Config(format!(
                     "Invalid signed manifest JSON: {e}"
                 )))
@@ -1912,9 +1900,10 @@ impl RigKernel {
             .check_quota(agent_id)
             .map_err(KernelError::Rig)?;
 
-        let entry = self.registry.get(agent_id).ok_or_else(|| {
-            KernelError::Rig(RigError::AgentNotFound(agent_id.to_string()))
-        })?;
+        let entry = self
+            .registry
+            .get(agent_id)
+            .ok_or_else(|| KernelError::Rig(RigError::AgentNotFound(agent_id.to_string())))?;
 
         // Dispatch based on module type
         let result = if entry.manifest.module.starts_with("wasm:") {
@@ -1999,9 +1988,10 @@ impl RigKernel {
             .check_quota(agent_id)
             .map_err(KernelError::Rig)?;
 
-        let entry = self.registry.get(agent_id).ok_or_else(|| {
-            KernelError::Rig(RigError::AgentNotFound(agent_id.to_string()))
-        })?;
+        let entry = self
+            .registry
+            .get(agent_id)
+            .ok_or_else(|| KernelError::Rig(RigError::AgentNotFound(agent_id.to_string())))?;
 
         let is_wasm = entry.manifest.module.starts_with("wasm:");
         let is_python = entry.manifest.module.starts_with("python:");
@@ -2256,8 +2246,7 @@ impl RigKernel {
                     .as_ref()
                     .and_then(|s| read_identity_file(s, "BOOTSTRAP.md")),
                 workspace_context: manifest.workspace.as_ref().map(|w| {
-                    let mut ws_ctx =
-                        rig_runtime::workspace_context::WorkspaceContext::detect(w);
+                    let mut ws_ctx = rig_runtime::workspace_context::WorkspaceContext::detect(w);
                     ws_ctx.build_context_section()
                 }),
                 identity_md: manifest
@@ -2273,11 +2262,7 @@ impl RigKernel {
                     None
                 },
                 peer_agents,
-                current_date: Some(
-                    chrono::Local::now()
-                        .format("%A, %B %d, %Y")
-                        .to_string(),
-                ),
+                current_date: Some(chrono::Local::now().format("%A, %B %d, %Y").to_string()),
                 sender_id,
                 sender_name,
                 // Re-read context.md per turn by default so external writers
@@ -2540,9 +2525,7 @@ impl RigKernel {
             )
             .await
             .map_err(|e| {
-                KernelError::Rig(RigError::Internal(format!(
-                    "WASM execution failed: {e}"
-                )))
+                KernelError::Rig(RigError::Internal(format!("WASM execution failed: {e}")))
             })?;
 
         // Extract response text from WASM output JSON
@@ -2615,9 +2598,7 @@ impl RigKernel {
         )
         .await
         .map_err(|e| {
-            KernelError::Rig(RigError::Internal(format!(
-                "Python execution failed: {e}"
-            )))
+            KernelError::Rig(RigError::Internal(format!("Python execution failed: {e}")))
         })?;
 
         info!(agent = %entry.name, "Python agent execution complete");
@@ -2848,8 +2829,7 @@ impl RigKernel {
                     .as_ref()
                     .and_then(|s| read_identity_file(s, "BOOTSTRAP.md")),
                 workspace_context: manifest.workspace.as_ref().map(|w| {
-                    let mut ws_ctx =
-                        rig_runtime::workspace_context::WorkspaceContext::detect(w);
+                    let mut ws_ctx = rig_runtime::workspace_context::WorkspaceContext::detect(w);
                     ws_ctx.build_context_section()
                 }),
                 identity_md: manifest
@@ -2865,11 +2845,7 @@ impl RigKernel {
                     None
                 },
                 peer_agents,
-                current_date: Some(
-                    chrono::Local::now()
-                        .format("%A, %B %d, %Y")
-                        .to_string(),
-                ),
+                current_date: Some(chrono::Local::now().format("%A, %B %d, %Y").to_string()),
                 sender_id,
                 sender_name,
                 // Re-read context.md per turn by default (#843).
@@ -2958,11 +2934,7 @@ impl RigKernel {
 
         // Lean mode: skip tools for simple queries (saves ~16k tokens)
         let is_lean_msg = rig_runtime::prompt_builder::is_lean_query(message);
-        let tools_for_loop: Vec<ToolDefinition> = if is_lean_msg {
-            Vec::new()
-        } else {
-            tools
-        };
+        let tools_for_loop: Vec<ToolDefinition> = if is_lean_msg { Vec::new() } else { tools };
         let result = run_agent_loop(
             &manifest,
             &message_with_links,
@@ -3041,8 +3013,7 @@ impl RigKernel {
             rig_types::config::UsageFooterMode::Off => {
                 result.cost_usd = None;
             }
-            rig_types::config::UsageFooterMode::Cost
-            | rig_types::config::UsageFooterMode::Full => {
+            rig_types::config::UsageFooterMode::Cost | rig_types::config::UsageFooterMode::Full => {
                 result.cost_usd = if cost > 0.0 { Some(cost) } else { None };
             }
             rig_types::config::UsageFooterMode::Tokens => {
@@ -3070,9 +3041,10 @@ impl RigKernel {
     /// Reset an agent's session — auto-saves a summary to memory, then clears messages
     /// and creates a fresh session ID.
     pub fn reset_session(&self, agent_id: AgentId) -> KernelResult<()> {
-        let entry = self.registry.get(agent_id).ok_or_else(|| {
-            KernelError::Rig(RigError::AgentNotFound(agent_id.to_string()))
-        })?;
+        let entry = self
+            .registry
+            .get(agent_id)
+            .ok_or_else(|| KernelError::Rig(RigError::AgentNotFound(agent_id.to_string())))?;
 
         // Auto-save session context to workspace memory before clearing
         if let Ok(Some(old_session)) = self.memory.get_session(entry.session_id) {
@@ -3106,9 +3078,10 @@ impl RigKernel {
     ///
     /// Creates a fresh empty session afterward so the agent is still usable.
     pub fn clear_agent_history(&self, agent_id: AgentId) -> KernelResult<()> {
-        let _entry = self.registry.get(agent_id).ok_or_else(|| {
-            KernelError::Rig(RigError::AgentNotFound(agent_id.to_string()))
-        })?;
+        let _entry = self
+            .registry
+            .get(agent_id)
+            .ok_or_else(|| KernelError::Rig(RigError::AgentNotFound(agent_id.to_string())))?;
 
         // Delete all regular sessions
         let _ = self.memory.delete_agent_sessions(agent_id);
@@ -3134,9 +3107,10 @@ impl RigKernel {
     /// List all sessions for a specific agent.
     pub fn list_agent_sessions(&self, agent_id: AgentId) -> KernelResult<Vec<serde_json::Value>> {
         // Verify agent exists
-        let entry = self.registry.get(agent_id).ok_or_else(|| {
-            KernelError::Rig(RigError::AgentNotFound(agent_id.to_string()))
-        })?;
+        let entry = self
+            .registry
+            .get(agent_id)
+            .ok_or_else(|| KernelError::Rig(RigError::AgentNotFound(agent_id.to_string())))?;
 
         let mut sessions = self
             .memory
@@ -3165,9 +3139,10 @@ impl RigKernel {
         label: Option<&str>,
     ) -> KernelResult<serde_json::Value> {
         // Verify agent exists
-        let _entry = self.registry.get(agent_id).ok_or_else(|| {
-            KernelError::Rig(RigError::AgentNotFound(agent_id.to_string()))
-        })?;
+        let _entry = self
+            .registry
+            .get(agent_id)
+            .ok_or_else(|| KernelError::Rig(RigError::AgentNotFound(agent_id.to_string())))?;
 
         let session = self
             .memory
@@ -3194,18 +3169,17 @@ impl RigKernel {
         session_id: SessionId,
     ) -> KernelResult<()> {
         // Verify agent exists
-        let _entry = self.registry.get(agent_id).ok_or_else(|| {
-            KernelError::Rig(RigError::AgentNotFound(agent_id.to_string()))
-        })?;
+        let _entry = self
+            .registry
+            .get(agent_id)
+            .ok_or_else(|| KernelError::Rig(RigError::AgentNotFound(agent_id.to_string())))?;
 
         // Verify session exists and belongs to this agent
         let session = self
             .memory
             .get_session(session_id)
             .map_err(KernelError::Rig)?
-            .ok_or_else(|| {
-                KernelError::Rig(RigError::Internal("Session not found".to_string()))
-            })?;
+            .ok_or_else(|| KernelError::Rig(RigError::Internal("Session not found".to_string())))?;
 
         if session.agent_id != agent_id {
             return Err(KernelError::Rig(RigError::Internal(
@@ -3577,9 +3551,10 @@ impl RigKernel {
 
     /// Get session token usage and estimated cost for an agent.
     pub fn session_usage_cost(&self, agent_id: AgentId) -> KernelResult<(u64, u64, f64)> {
-        let entry = self.registry.get(agent_id).ok_or_else(|| {
-            KernelError::Rig(RigError::AgentNotFound(agent_id.to_string()))
-        })?;
+        let entry = self
+            .registry
+            .get(agent_id)
+            .ok_or_else(|| KernelError::Rig(RigError::AgentNotFound(agent_id.to_string())))?;
 
         let session = self
             .memory
@@ -3633,9 +3608,10 @@ impl RigKernel {
     pub async fn compact_agent_session(&self, agent_id: AgentId) -> KernelResult<String> {
         use rig_runtime::compactor::{compact_session, needs_compaction, CompactionConfig};
 
-        let entry = self.registry.get(agent_id).ok_or_else(|| {
-            KernelError::Rig(RigError::AgentNotFound(agent_id.to_string()))
-        })?;
+        let entry = self
+            .registry
+            .get(agent_id)
+            .ok_or_else(|| KernelError::Rig(RigError::AgentNotFound(agent_id.to_string())))?;
 
         let session = self
             .memory
@@ -3715,9 +3691,10 @@ impl RigKernel {
     ) -> KernelResult<rig_runtime::compactor::ContextReport> {
         use rig_runtime::compactor::generate_context_report;
 
-        let entry = self.registry.get(agent_id).ok_or_else(|| {
-            KernelError::Rig(RigError::AgentNotFound(agent_id.to_string()))
-        })?;
+        let entry = self
+            .registry
+            .get(agent_id)
+            .ok_or_else(|| KernelError::Rig(RigError::AgentNotFound(agent_id.to_string())))?;
 
         let session = self
             .memory
@@ -3758,9 +3735,10 @@ impl RigKernel {
     ///
     /// See issue #890 — allows an orchestrator agent to wake other agents.
     pub fn activate_agent(&self, agent_id: AgentId) -> KernelResult<String> {
-        let entry = self.registry.get(agent_id).ok_or_else(|| {
-            KernelError::Rig(RigError::AgentNotFound(agent_id.to_string()))
-        })?;
+        let entry = self
+            .registry
+            .get(agent_id)
+            .ok_or_else(|| KernelError::Rig(RigError::AgentNotFound(agent_id.to_string())))?;
 
         if entry.state == AgentState::Terminated {
             return Err(KernelError::Rig(RigError::Internal(format!(
@@ -3789,10 +3767,7 @@ impl RigKernel {
 
     /// Kill an agent.
     pub fn kill_agent(&self, agent_id: AgentId) -> KernelResult<()> {
-        let entry = self
-            .registry
-            .remove(agent_id)
-            .map_err(KernelError::Rig)?;
+        let entry = self.registry.remove(agent_id).map_err(KernelError::Rig)?;
         self.background.stop_agent(agent_id);
         self.scheduler.unregister(agent_id);
         self.capabilities.revoke_all(agent_id);
@@ -3848,9 +3823,9 @@ impl RigKernel {
             .hand_registry
             .activate(hand_id, config, instance_name.clone())
             .map_err(|e| match e {
-                HandError::AlreadyActive(id) => KernelError::Rig(RigError::Internal(
-                    format!("Hand already active: {id}"),
-                )),
+                HandError::AlreadyActive(id) => {
+                    KernelError::Rig(RigError::Internal(format!("Hand already active: {id}")))
+                }
                 other => KernelError::Rig(RigError::Internal(other.to_string())),
             })?;
 
@@ -3950,8 +3925,7 @@ impl RigKernel {
         let mut allowed_env = resolved.env_vars;
         for req in &def.requires {
             match req.requirement_type {
-                rig_hands::RequirementType::ApiKey
-                | rig_hands::RequirementType::EnvVar
+                rig_hands::RequirementType::ApiKey | rig_hands::RequirementType::EnvVar
                     if !req.check_value.is_empty() && !allowed_env.contains(&req.check_value) =>
                 {
                     allowed_env.push(req.check_value.clone());
@@ -4409,9 +4383,7 @@ impl RigKernel {
                 "Workflow timed out after {MAX_WORKFLOW_SECS}s"
             )))
         })?
-        .map_err(|e| {
-            KernelError::Rig(RigError::Internal(format!("Workflow failed: {e}")))
-        })?;
+        .map_err(|e| KernelError::Rig(RigError::Internal(format!("Workflow failed: {e}"))))?;
 
         Ok((run_id, output))
     }
@@ -5215,9 +5187,7 @@ impl RigKernel {
     /// the cron scheduler. Returns `Err` with a human-readable reason when
     /// the entry cannot be migrated (so the caller can log and skip).
     fn migrate_single_schedule_entry(&self, entry: &serde_json::Value) -> Result<(), String> {
-        use rig_types::scheduler::{
-            CronAction, CronDelivery, CronJob, CronJobId, CronSchedule,
-        };
+        use rig_types::scheduler::{CronAction, CronDelivery, CronJob, CronJobId, CronSchedule};
 
         let cron_expr = entry["cron"]
             .as_str()
@@ -5664,10 +5634,9 @@ impl RigKernel {
             .fallback_providers_override
             .read()
             .unwrap_or_else(|e: std::sync::PoisonError<_>| e.into_inner());
-        let effective_fallbacks: &[rig_types::config::FallbackProviderConfig] =
-            fb_override_guard
-                .as_deref()
-                .unwrap_or(&self.config.fallback_providers);
+        let effective_fallbacks: &[rig_types::config::FallbackProviderConfig] = fb_override_guard
+            .as_deref()
+            .unwrap_or(&self.config.fallback_providers);
 
         let has_custom_key = manifest.model.api_key_env.is_some();
         let has_custom_url = manifest.model.base_url.is_some();
@@ -7026,10 +6995,7 @@ fn manifest_to_capabilities(manifest: &AgentManifest) -> Vec<Capability> {
 ///
 /// When the global budget config specifies limits and the agent still has
 /// the built-in defaults, override them so agents respect the user's config.
-fn apply_budget_defaults(
-    budget: &rig_types::config::BudgetConfig,
-    resources: &mut ResourceQuota,
-) {
+fn apply_budget_defaults(budget: &rig_types::config::BudgetConfig, resources: &mut ResourceQuota) {
     // Only override hourly if agent has unlimited (0.0) and global is set
     if budget.max_hourly_usd > 0.0 && resources.max_cost_per_hour_usd == 0.0 {
         resources.max_cost_per_hour_usd = budget.max_hourly_usd;
@@ -7386,10 +7352,9 @@ async fn cron_fan_out_targets(
     if targets.is_empty() || output.is_empty() {
         return;
     }
-    let bridge: Arc<dyn rig_channels::bridge::ChannelBridgeHandle> =
-        Arc::new(KernelCronBridge {
-            kernel: kernel.clone(),
-        });
+    let bridge: Arc<dyn rig_channels::bridge::ChannelBridgeHandle> = Arc::new(KernelCronBridge {
+        kernel: kernel.clone(),
+    });
     let engine = crate::cron_delivery::CronDeliveryEngine::new(bridge);
     let results = engine.deliver(targets, job_name, output).await;
     let total = results.len();

@@ -234,9 +234,7 @@ fn default_version() -> u32 {
 impl WorkspaceState {
     /// Load state from the workspace's `.rig/workspace-state.json`.
     pub fn load(workspace_root: &Path) -> Self {
-        let path = workspace_root
-            .join(".rig")
-            .join("workspace-state.json");
+        let path = workspace_root.join(".rig").join("workspace-state.json");
         match std::fs::read_to_string(&path) {
             Ok(json) => serde_json::from_str(&json).unwrap_or_default(),
             Err(_) => Self::default(),
@@ -246,8 +244,7 @@ impl WorkspaceState {
     /// Save state to the workspace's `.rig/workspace-state.json`.
     pub fn save(&self, workspace_root: &Path) -> Result<(), String> {
         let dir = workspace_root.join(".rig");
-        std::fs::create_dir_all(&dir)
-            .map_err(|e| format!("Failed to create .rig dir: {e}"))?;
+        std::fs::create_dir_all(&dir).map_err(|e| format!("Failed to create .rig dir: {e}"))?;
         let path = dir.join("workspace-state.json");
         let json = serde_json::to_string_pretty(self)
             .map_err(|e| format!("Failed to serialize state: {e}"))?;

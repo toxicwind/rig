@@ -275,8 +275,8 @@ pub async fn execute_tool(
                 }
             }
             // Skip heuristic taint patterns for Full exec policy (e.g. hand agents that need curl)
-            let is_full_exec = exec_policy
-                .is_some_and(|p| p.mode == rig_types::config::ExecSecurityMode::Full);
+            let is_full_exec =
+                exec_policy.is_some_and(|p| p.mode == rig_types::config::ExecSecurityMode::Full);
             if !is_full_exec {
                 if let Some(violation) = check_taint_shell_exec(command) {
                     return ToolResult {
@@ -3595,7 +3595,10 @@ fn tool_skill_list(skill_registry: Option<&SkillRegistry>) -> Result<String, Str
     };
     let skills = registry.list();
     if skills.is_empty() {
-        return Ok("No skills installed. Install skills via the dashboard or `rig skill install <name>`.".to_string());
+        return Ok(
+            "No skills installed. Install skills via the dashboard or `rig skill install <name>`."
+                .to_string(),
+        );
     }
     let entries: Vec<serde_json::Value> = skills
         .iter()

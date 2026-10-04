@@ -62,10 +62,7 @@ impl MeteringEngine {
     }
 
     /// Check global budget limits (across all agents).
-    pub fn check_global_budget(
-        &self,
-        budget: &rig_types::config::BudgetConfig,
-    ) -> RigResult<()> {
+    pub fn check_global_budget(&self, budget: &rig_types::config::BudgetConfig) -> RigResult<()> {
         if budget.max_hourly_usd > 0.0 {
             let cost = self.store.query_global_hourly()?;
             if cost >= budget.max_hourly_usd {

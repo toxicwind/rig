@@ -44,11 +44,7 @@ pub fn error(msg: &str) {
 
 /// Brand banner: ">> Rig Agent OS"
 pub fn banner() {
-    println!(
-        "  {} {}",
-        ">>".bright_cyan().bold(),
-        "Rig Agent OS".bold()
-    );
+    println!("  {} {}", ">>".bright_cyan().bold(), "Rig Agent OS".bold());
     println!("     {}", "The open-source agent operating system".dimmed());
 }
 

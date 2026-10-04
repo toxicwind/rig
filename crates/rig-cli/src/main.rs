@@ -2263,9 +2263,7 @@ fn cmd_doctor(json: bool, repair: bool) {
             checks.push(serde_json::json!({"check": "env_file", "status": "ok"}));
         } else {
             if !json {
-                ui::check_warn(
-                    ".env file not found (create with: rig config set-key <provider>)",
-                );
+                ui::check_warn(".env file not found (create with: rig config set-key <provider>)");
             }
             checks.push(serde_json::json!({"check": "env_file", "status": "warn"}));
         }
@@ -2709,10 +2707,7 @@ decay_rate = 0.05
                         for server in &cfg.mcp_servers {
                             // Validate transport config
                             match &server.transport {
-                                rig_types::config::McpTransportEntry::Stdio {
-                                    command,
-                                    ..
-                                } => {
+                                rig_types::config::McpTransportEntry::Stdio { command, .. } => {
                                     if command.is_empty() {
                                         if !json {
                                             ui::check_warn(&format!(
@@ -2795,12 +2790,9 @@ decay_rate = 0.05
         for skill in &skills {
             if let Some(ref prompt) = skill.manifest.prompt_context {
                 let warnings = rig_skills::verify::SkillVerifier::scan_prompt_content(prompt);
-                let has_critical = warnings.iter().any(|w| {
-                    matches!(
-                        w.severity,
-                        rig_skills::verify::WarningSeverity::Critical
-                    )
-                });
+                let has_critical = warnings
+                    .iter()
+                    .any(|w| matches!(w.severity, rig_skills::verify::WarningSeverity::Critical));
                 if has_critical {
                     injection_warnings += 1;
                     if !json {
@@ -2835,8 +2827,7 @@ decay_rate = 0.05
             println!("\n  Extensions:");
         }
         let rig_dir = cli_rig_home();
-        let mut ext_registry =
-            rig_extensions::registry::IntegrationRegistry::new(&rig_dir);
+        let mut ext_registry = rig_extensions::registry::IntegrationRegistry::new(&rig_dir);
         ext_registry.load_bundled();
         let _ = ext_registry.load_installed();
         let template_count = ext_registry.template_count();
@@ -3631,9 +3622,9 @@ fn cmd_skill_install(source: &str) {
                         let dest = skills_dir.join(&manifest.skill.name);
                         // Copy skill directory
                         copy_dir_recursive(&source_path, &dest);
-                        if let Err(e) = rig_skills::openclaw_compat::write_rig_manifest(
-                            &dest, &manifest,
-                        ) {
+                        if let Err(e) =
+                            rig_skills::openclaw_compat::write_rig_manifest(&dest, &manifest)
+                        {
                             eprintln!("Failed to write manifest: {e}");
                             std::process::exit(1);
                         }
@@ -3656,11 +3647,10 @@ fn cmd_skill_install(source: &str) {
             eprintln!("Error reading skill.toml: {e}");
             std::process::exit(1);
         });
-        let manifest: rig_skills::SkillManifest =
-            toml::from_str(&toml_str).unwrap_or_else(|e| {
-                eprintln!("Error parsing skill.toml: {e}");
-                std::process::exit(1);
-            });
+        let manifest: rig_skills::SkillManifest = toml::from_str(&toml_str).unwrap_or_else(|e| {
+            eprintln!("Error parsing skill.toml: {e}");
+            std::process::exit(1);
+        });
 
         let dest = skills_dir.join(&manifest.skill.name);
         copy_dir_recursive(&source_path, &dest);
@@ -3711,9 +3701,9 @@ fn cmd_skill_install(source: &str) {
                     Ok(manifest) => {
                         let dest = skills_dir.join(&manifest.skill.name);
                         copy_dir_recursive(&clone_path, &dest);
-                        if let Err(e) = rig_skills::openclaw_compat::write_rig_manifest(
-                            &dest, &manifest,
-                        ) {
+                        if let Err(e) =
+                            rig_skills::openclaw_compat::write_rig_manifest(&dest, &manifest)
+                        {
                             eprintln!("Failed to write manifest: {e}");
                             std::process::exit(1);
                         }
@@ -3735,11 +3725,10 @@ fn cmd_skill_install(source: &str) {
             eprintln!("Error reading skill.toml: {e}");
             std::process::exit(1);
         });
-        let manifest: rig_skills::SkillManifest =
-            toml::from_str(&toml_str).unwrap_or_else(|e| {
-                eprintln!("Error parsing skill.toml: {e}");
-                std::process::exit(1);
-            });
+        let manifest: rig_skills::SkillManifest = toml::from_str(&toml_str).unwrap_or_else(|e| {
+            eprintln!("Error parsing skill.toml: {e}");
+            std::process::exit(1);
+        });
 
         let dest = skills_dir.join(&manifest.skill.name);
         copy_dir_recursive(&clone_path, &dest);
@@ -3941,10 +3930,7 @@ if __name__ == "__main__":
     println!("\nNext steps:");
     println!("  1. Edit the entry point to implement your skill logic");
     println!("  2. Test locally: rig skill test");
-    println!(
-        "  3. Install: rig skill install {}",
-        skill_dir.display()
-    );
+    println!("  3. Install: rig skill install {}", skill_dir.display());
 }
 
 // ---------------------------------------------------------------------------
@@ -4775,9 +4761,7 @@ fn cmd_hand_config(
     if let Some(err) = resp.get("error").and_then(|v| v.as_str()) {
         ui::error(&format!("Failed to update hand '{id}' settings: {err}"));
         if err.contains("No active instance") {
-            ui::hint(&format!(
-                "Activate the hand first: rig hand activate {id}"
-            ));
+            ui::hint(&format!("Activate the hand first: rig hand activate {id}"));
         }
         std::process::exit(1);
     }
@@ -5558,8 +5542,7 @@ fn cmd_integrations_list(query: Option<&str>) {
     let _ = registry.load_installed();
 
     let dotenv_path = home.join(".env");
-    let resolver =
-        rig_extensions::credentials::CredentialResolver::new(None, Some(&dotenv_path));
+    let resolver = rig_extensions::credentials::CredentialResolver::new(None, Some(&dotenv_path));
 
     let entries = if let Some(q) = query {
         rig_extensions::installer::search_integrations(&registry, q)
@@ -5594,15 +5577,11 @@ fn cmd_integrations_list(query: Option<&str>) {
             let status_badge = match &item.status {
                 rig_extensions::IntegrationStatus::Ready => "[Ready]".green().to_string(),
                 rig_extensions::IntegrationStatus::Setup => "[Setup]".yellow().to_string(),
-                rig_extensions::IntegrationStatus::Available => {
-                    "[Available]".dimmed().to_string()
-                }
+                rig_extensions::IntegrationStatus::Available => "[Available]".dimmed().to_string(),
                 rig_extensions::IntegrationStatus::Error(msg) => {
                     format!("[Error: {msg}]").red().to_string()
                 }
-                rig_extensions::IntegrationStatus::Disabled => {
-                    "[Disabled]".dimmed().to_string()
-                }
+                rig_extensions::IntegrationStatus::Disabled => "[Disabled]".dimmed().to_string(),
             };
             println!(
                 "    {} {:<20} {:<12} {}",
@@ -5618,8 +5597,7 @@ fn cmd_integrations_list(query: Option<&str>) {
             .iter()
             .filter(|e| matches!(
                 e.status,
-                rig_extensions::IntegrationStatus::Ready
-                    | rig_extensions::IntegrationStatus::Setup
+                rig_extensions::IntegrationStatus::Ready | rig_extensions::IntegrationStatus::Setup
             ))
             .count()
     );
@@ -5733,9 +5711,7 @@ fn cmd_vault_remove(key: &str) {
 fn cmd_scaffold(kind: ScaffoldKind) {
     let cwd = std::env::current_dir().unwrap_or_default();
     let result = match kind {
-        ScaffoldKind::Skill => {
-            rig_extensions::installer::scaffold_skill(&cwd.join("my-skill"))
-        }
+        ScaffoldKind::Skill => rig_extensions::installer::scaffold_skill(&cwd.join("my-skill")),
         ScaffoldKind::Integration => {
             rig_extensions::installer::scaffold_integration(&cwd.join("my-integration"))
         }
@@ -6811,10 +6787,7 @@ fn cmd_reset(confirm: bool) {
     let rig_dir = cli_rig_home();
 
     if !rig_dir.exists() {
-        println!(
-            "Nothing to reset — {} does not exist.",
-            rig_dir.display()
-        );
+        println!("Nothing to reset — {} does not exist.", rig_dir.display());
         return;
     }
 
@@ -6873,11 +6846,7 @@ fn cmd_uninstall(confirm: bool, keep_config: bool) {
         .unwrap_or_else(std::env::temp_dir)
         .join(".cargo")
         .join("bin")
-        .join(if cfg!(windows) {
-            "rig.exe"
-        } else {
-            "rig"
-        });
+        .join(if cfg!(windows) { "rig.exe" } else { "rig" });
     if cargo_bin.exists() && exe_path.as_ref().is_none_or(|e| *e != cargo_bin) {
         println!("  • Remove cargo binary: {}", cargo_bin.display());
     }
@@ -7501,14 +7470,8 @@ enabled = true
             r#"export PATH="/home/user/.rig/bin:$PATH""#,
             dir
         ));
-        assert!(is_rig_path_line(
-            "set -gx PATH $HOME/.rig/bin $PATH",
-            dir
-        ));
-        assert!(is_rig_path_line(
-            "fish_add_path $HOME/.rig/bin",
-            dir
-        ));
+        assert!(is_rig_path_line("set -gx PATH $HOME/.rig/bin $PATH", dir));
+        assert!(is_rig_path_line("fish_add_path $HOME/.rig/bin", dir));
 
         // Should NOT match: unrelated PATH exports
         assert!(!is_rig_path_line(

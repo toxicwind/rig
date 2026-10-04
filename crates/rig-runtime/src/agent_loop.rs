@@ -20,9 +20,7 @@ use rig_skills::registry::SkillRegistry;
 use rig_types::agent::{AgentManifest, FallbackModel};
 use rig_types::error::{RigError, RigResult};
 use rig_types::memory::{Memory, MemoryFilter, MemorySource};
-use rig_types::message::{
-    ContentBlock, Message, MessageContent, Role, StopReason, TokenUsage,
-};
+use rig_types::message::{ContentBlock, Message, MessageContent, Role, StopReason, TokenUsage};
 use rig_types::tool::{ToolCall, ToolDefinition};
 use std::collections::HashMap;
 use std::path::Path;

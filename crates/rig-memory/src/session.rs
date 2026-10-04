@@ -196,11 +196,7 @@ impl SessionStore {
     }
 
     /// Set the label on an existing session.
-    pub fn set_session_label(
-        &self,
-        session_id: SessionId,
-        label: Option<&str>,
-    ) -> RigResult<()> {
+    pub fn set_session_label(&self, session_id: SessionId, label: Option<&str>) -> RigResult<()> {
         let conn = self
             .conn
             .lock()

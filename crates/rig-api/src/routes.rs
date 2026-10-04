@@ -7,9 +7,7 @@ use axum::response::IntoResponse;
 use axum::Json;
 use dashmap::DashMap;
 use rig_kernel::triggers::{TriggerId, TriggerPattern};
-use rig_kernel::workflow::{
-    ErrorMode, StepAgent, StepMode, Workflow, WorkflowId, WorkflowStep,
-};
+use rig_kernel::workflow::{ErrorMode, StepAgent, StepMode, Workflow, WorkflowId, WorkflowStep};
 use rig_kernel::RigKernel;
 use rig_runtime::kernel_handle::KernelHandle;
 use rig_runtime::tool_runner::builtin_tool_definitions;
@@ -255,9 +253,7 @@ pub async fn list_agents(State(state): State<Arc<AppState>>) -> impl IntoRespons
 ///
 /// Reads each file from the upload directory, base64-encodes it, and
 /// returns image content blocks ready to insert into a session message.
-pub fn resolve_attachments(
-    attachments: &[AttachmentRef],
-) -> Vec<rig_types::message::ContentBlock> {
+pub fn resolve_attachments(attachments: &[AttachmentRef]) -> Vec<rig_types::message::ContentBlock> {
     use base64::Engine;
 
     let upload_dir = std::env::temp_dir().join("rig_uploads");
@@ -521,10 +517,7 @@ pub async fn get_agent_session(
                                 rig_types::message::ContentBlock::Text { text, .. } => {
                                     texts.push(text.clone());
                                 }
-                                rig_types::message::ContentBlock::Image {
-                                    media_type,
-                                    data,
-                                } => {
+                                rig_types::message::ContentBlock::Image { media_type, data } => {
                                     texts.push("[Image]".to_string());
                                     // Persist image to upload dir so it can be
                                     // served back when loading session history.
@@ -3586,10 +3579,7 @@ pub async fn prometheus_metrics(State(state): State<Arc<AppState>>) -> impl Into
     out.push_str(&format!("rig_panics_total {}\n", health.panic_count));
     out.push_str("# HELP rig_restarts_total Total supervisor restarts since start.\n");
     out.push_str("# TYPE rig_restarts_total counter\n");
-    out.push_str(&format!(
-        "rig_restarts_total {}\n\n",
-        health.restart_count
-    ));
+    out.push_str(&format!("rig_restarts_total {}\n\n", health.restart_count));
 
     // Version info
     out.push_str("# HELP rig_info Rig version and build info.\n");
@@ -5121,10 +5111,7 @@ pub async fn hand_instance_browser(
                 content = data["content"].as_str().unwrap_or("").to_string();
                 // Truncate content to avoid huge payloads (UTF-8 safe)
                 if content.len() > 2000 {
-                    content = format!(
-                        "{}... (truncated)",
-                        rig_types::truncate_str(&content, 2000)
-                    );
+                    content = format!("{}... (truncated)", rig_types::truncate_str(&content, 2000));
                 }
             }
         }
@@ -6499,9 +6486,7 @@ pub async fn list_providers(State(state): State<Arc<AppState>>) -> impl IntoResp
     let cache = &state.provider_probe_cache;
     let probe_futures: Vec<_> = local_providers
         .iter()
-        .map(|(_, id, url)| {
-            rig_runtime::provider_health::probe_provider_cached(id, url, cache)
-        })
+        .map(|(_, id, url)| rig_runtime::provider_health::probe_provider_cached(id, url, cache))
         .collect();
     let probe_results = futures::future::join_all(probe_futures).await;
 
@@ -7406,9 +7391,9 @@ pub async fn set_model(
             // provider) are the caller's mistake: 400, not 500, so CLI
             // agents can distinguish "fix your input" from "server broke".
             let status = match &e {
-                rig_kernel::error::KernelError::Rig(
-                    rig_types::error::RigError::InvalidInput(_),
-                ) => StatusCode::BAD_REQUEST,
+                rig_kernel::error::KernelError::Rig(rig_types::error::RigError::InvalidInput(
+                    _,
+                )) => StatusCode::BAD_REQUEST,
                 _ => StatusCode::INTERNAL_SERVER_ERROR,
             };
             (status, Json(serde_json::json!({"error": format!("{e}")})))
@@ -9417,8 +9402,7 @@ pub async fn update_schedule(
         let mut parsed: Vec<rig_types::scheduler::CronDeliveryTarget> =
             Vec::with_capacity(arr.len());
         for (idx, t) in arr.iter().enumerate() {
-            match serde_json::from_value::<rig_types::scheduler::CronDeliveryTarget>(t.clone())
-            {
+            match serde_json::from_value::<rig_types::scheduler::CronDeliveryTarget>(t.clone()) {
                 Ok(dt) => parsed.push(dt),
                 Err(e) => {
                     return (
@@ -11852,10 +11836,7 @@ pub async fn pairing_notify(
         )
             .into_response();
     }
-    let title = body
-        .get("title")
-        .and_then(|v| v.as_str())
-        .unwrap_or("Rig");
+    let title = body.get("title").and_then(|v| v.as_str()).unwrap_or("Rig");
     let message = body.get("message").and_then(|v| v.as_str()).unwrap_or("");
     if message.is_empty() {
         return (

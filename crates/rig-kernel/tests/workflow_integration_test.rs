@@ -6,9 +6,7 @@
 //! LLM tests require GROQ_API_KEY. Non-LLM tests verify the kernel-level
 //! workflow wiring without making real API calls.
 
-use rig_kernel::workflow::{
-    ErrorMode, StepAgent, StepMode, Workflow, WorkflowId, WorkflowStep,
-};
+use rig_kernel::workflow::{ErrorMode, StepAgent, StepMode, Workflow, WorkflowId, WorkflowStep};
 use rig_kernel::RigKernel;
 use rig_types::agent::AgentManifest;
 use rig_types::config::{DefaultModelConfig, KernelConfig};

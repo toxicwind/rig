@@ -293,11 +293,7 @@ mod tests {
     fn test_gateway_dir_under_rig_home() {
         let dir = gateway_dir();
         assert!(dir.ends_with("whatsapp-gateway"));
-        assert!(dir
-            .parent()
-            .unwrap()
-            .to_string_lossy()
-            .contains(".rig"));
+        assert!(dir.parent().unwrap().to_string_lossy().contains(".rig"));
     }
 
     #[test]

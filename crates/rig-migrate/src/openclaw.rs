@@ -2461,7 +2461,9 @@ fn report_skipped_features(root: &OpenClawRoot, source: &Path, report: &mut Migr
         report.skipped.push(SkippedItem {
             kind: ItemKind::Config,
             name: "cron".to_string(),
-            reason: "Cron job scheduling not yet supported — use Rig's ScheduleMode::Periodic instead".to_string(),
+            reason:
+                "Cron job scheduling not yet supported — use Rig's ScheduleMode::Periodic instead"
+                    .to_string(),
         });
     }
 
@@ -2512,8 +2514,7 @@ fn report_skipped_features(root: &OpenClawRoot, source: &Path, report: &mut Migr
         report.skipped.push(SkippedItem {
             kind: ItemKind::Memory,
             name: "memory-search/index.db".to_string(),
-            reason: "SQLite vector index not portable — Rig will rebuild embeddings"
-                .to_string(),
+            reason: "SQLite vector index not portable — Rig will rebuild embeddings".to_string(),
         });
     }
 
@@ -2542,9 +2543,8 @@ fn report_skipped_features(root: &OpenClawRoot, source: &Path, report: &mut Migr
         report.skipped.push(SkippedItem {
             kind: ItemKind::Config,
             name: "memory".to_string(),
-            reason:
-                "Memory backend config not migrated — Rig uses SQLite with vector embeddings"
-                    .to_string(),
+            reason: "Memory backend config not migrated — Rig uses SQLite with vector embeddings"
+                .to_string(),
         });
     }
 }
@@ -2896,7 +2896,9 @@ fn parse_legacy_channels(
                 report.skipped.push(SkippedItem {
                     kind: ItemKind::Channel,
                     name: "bluebubbles".to_string(),
-                    reason: "No Rig adapter available — consider using the iMessage channel instead".to_string(),
+                    reason:
+                        "No Rig adapter available — consider using the iMessage channel instead"
+                            .to_string(),
                 });
             }
             _ => {}

@@ -313,10 +313,7 @@ pub trait Memory: Send + Sync {
     async fn add_relation(&self, relation: Relation) -> crate::error::RigResult<String>;
 
     /// Query the knowledge graph.
-    async fn query_graph(
-        &self,
-        pattern: GraphPattern,
-    ) -> crate::error::RigResult<Vec<GraphMatch>>;
+    async fn query_graph(&self, pattern: GraphPattern) -> crate::error::RigResult<Vec<GraphMatch>>;
 
     // -- Maintenance --
 

@@ -81,12 +81,12 @@ impl ModelCatalog {
                     .or_else(|_| std::env::var("USERPROFILE"))
                     .map(|h| std::path::PathBuf::from(h).join(".rig"))
                     .unwrap_or_else(|_| std::path::PathBuf::from(".rig"));
-                provider.auth_status =
-                    if crate::drivers::copilot::copilot_auth_available(&rig_dir) {
-                        AuthStatus::Configured
-                    } else {
-                        AuthStatus::Missing
-                    };
+                provider.auth_status = if crate::drivers::copilot::copilot_auth_available(&rig_dir)
+                {
+                    AuthStatus::Configured
+                } else {
+                    AuthStatus::Missing
+                };
                 continue;
             }
 

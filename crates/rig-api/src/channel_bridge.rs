@@ -167,11 +167,7 @@ impl ChannelBridgeHandle for KernelBridgeAdapter {
                 agents.len()
             )
         } else {
-            format!(
-                "Rig status: {}m uptime, {} agent(s)",
-                mins,
-                agents.len()
-            )
+            format!("Rig status: {}m uptime, {} agent(s)", mins, agents.len())
         }
     }
 
@@ -583,12 +579,10 @@ impl ChannelBridgeHandle for KernelBridgeAdapter {
                     1 => {
                         let j = matched[0];
                         let message = match &j.action {
-                            rig_types::scheduler::CronAction::AgentTurn {
-                                message, ..
-                            } => message.clone(),
-                            rig_types::scheduler::CronAction::SystemEvent { text } => {
-                                text.clone()
+                            rig_types::scheduler::CronAction::AgentTurn { message, .. } => {
+                                message.clone()
                             }
+                            rig_types::scheduler::CronAction::SystemEvent { text } => text.clone(),
                             rig_types::scheduler::CronAction::WorkflowRun {
                                 workflow_id,
                                 input,

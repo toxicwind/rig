@@ -106,7 +106,7 @@ impl OpenAIDriver {
     /// Shared by `complete()` and `stream()` so both paths behave identically,
     /// including the OpenRouter `cache_control` breakpoint on system messages.
     fn build_oai_messages(&self, request: &CompletionRequest) -> Vec<OaiMessage> {
-let mut oai_messages: Vec<OaiMessage> = Vec::new();
+        let mut oai_messages: Vec<OaiMessage> = Vec::new();
 
         // Add system message if present (with cache_control for OpenRouter)
         if let Some(ref system) = request.system {
@@ -165,7 +165,10 @@ let mut oai_messages: Vec<OaiMessage> = Vec::new();
                                 });
                             }
                             ContentBlock::Text { text, .. } => {
-                                parts.push(OaiContentPart::Text { text: text.clone(), cache_control: None });
+                                parts.push(OaiContentPart::Text {
+                                    text: text.clone(),
+                                    cache_control: None,
+                                });
                             }
                             ContentBlock::Image { media_type, data } => {
                                 parts.push(OaiContentPart::ImageUrl {
@@ -371,7 +374,9 @@ struct OaiCacheControl {
 
 impl OaiCacheControl {
     fn ephemeral() -> Self {
-        Self { cache_type: "ephemeral".into() }
+        Self {
+            cache_type: "ephemeral".into(),
+        }
     }
 }
 
@@ -1678,7 +1683,9 @@ fn http200_error_envelope(body: &serde_json::Value) -> Option<LlmError> {
         });
     }
     match code {
-        429 => Some(LlmError::RateLimited { retry_after_ms: 5000 }),
+        429 => Some(LlmError::RateLimited {
+            retry_after_ms: 5000,
+        }),
         401 => Some(LlmError::AuthenticationFailed(message)),
         404 => Some(LlmError::ModelNotFound(message)),
         _ => Some(LlmError::Api {
@@ -2320,7 +2327,9 @@ mod tests {
         let msg = driver.build_system_message("hello".to_string(), "openai/gpt-4o");
         let json = serde_json::to_value(&msg).unwrap();
         assert_eq!(json["role"], "system");
-        let parts = json["content"].as_array().expect("content should be parts array");
+        let parts = json["content"]
+            .as_array()
+            .expect("content should be parts array");
         assert_eq!(parts.len(), 1);
         assert_eq!(parts[0]["type"], "text");
         assert_eq!(parts[0]["text"], "hello");
@@ -2354,10 +2363,7 @@ mod tests {
             "openrouter-free/inclusionai/ling-3.0-flash-sante:free",
         );
         let json = serde_json::to_value(&msg).unwrap();
-        assert_eq!(
-            json["content"][0]["cache_control"]["type"],
-            "ephemeral"
-        );
+        assert_eq!(json["content"][0]["cache_control"]["type"], "ephemeral");
     }
 
     #[test]
@@ -2393,12 +2399,8 @@ mod tests {
         let msgs = driver.build_oai_messages(&req);
         assert_eq!(msgs.len(), 1);
         let json = serde_json::to_value(&msgs[0]).unwrap();
-        assert_eq!(
-            json["content"][0]["cache_control"]["type"],
-            "ephemeral"
-        );
+        assert_eq!(json["content"][0]["cache_control"]["type"], "ephemeral");
     }
-
 
     #[test]
     fn test_http200_envelope_nvidia_saturated_maps_overloaded() {
@@ -2458,4 +2460,3 @@ mod tests {
         }
     }
 }
-

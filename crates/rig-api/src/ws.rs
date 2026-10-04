@@ -1791,10 +1791,7 @@ mod tests {
         let secret = "shared-secret";
         let token = crate::session_auth::create_session_token("alice", secret, 1);
         let mut headers = axum::http::HeaderMap::new();
-        headers.insert(
-            "cookie",
-            format!("rig_session={token}").parse().unwrap(),
-        );
+        headers.insert("cookie", format!("rig_session={token}").parse().unwrap());
         let uri = empty_uri();
         let ctx = WsAuthCtx {
             api_key: secret,
@@ -1931,10 +1928,7 @@ mod tests {
         let secret = "password-hash-style-secret";
         let token = crate::session_auth::create_session_token("admin", secret, 1);
         let mut headers = axum::http::HeaderMap::new();
-        headers.insert(
-            "cookie",
-            format!("rig_session={token}").parse().unwrap(),
-        );
+        headers.insert("cookie", format!("rig_session={token}").parse().unwrap());
         let uri = empty_uri();
         let ctx = WsAuthCtx {
             api_key: "",
@@ -1985,10 +1979,7 @@ mod tests {
         let secret = "password-hash-style-secret";
         let token = crate::session_auth::create_session_token("admin", secret, 1);
         let mut headers = axum::http::HeaderMap::new();
-        headers.insert(
-            "cookie",
-            format!("rig_session={token}").parse().unwrap(),
-        );
+        headers.insert("cookie", format!("rig_session={token}").parse().unwrap());
         let uri = empty_uri();
         let ctx = WsAuthCtx {
             api_key: "",

@@ -128,12 +128,10 @@ impl CronScheduler {
         let data = serde_json::to_string_pretty(&metas)
             .map_err(|e| RigError::Internal(format!("Failed to serialize cron jobs: {e}")))?;
         let tmp_path = self.persist_path.with_extension("json.tmp");
-        std::fs::write(&tmp_path, data.as_bytes()).map_err(|e| {
-            RigError::Internal(format!("Failed to write cron jobs temp file: {e}"))
-        })?;
-        std::fs::rename(&tmp_path, &self.persist_path).map_err(|e| {
-            RigError::Internal(format!("Failed to rename cron jobs file: {e}"))
-        })?;
+        std::fs::write(&tmp_path, data.as_bytes())
+            .map_err(|e| RigError::Internal(format!("Failed to write cron jobs temp file: {e}")))?;
+        std::fs::rename(&tmp_path, &self.persist_path)
+            .map_err(|e| RigError::Internal(format!("Failed to rename cron jobs file: {e}")))?;
         debug!(count = metas.len(), "Persisted cron jobs");
         Ok(())
     }
@@ -163,8 +161,7 @@ impl CronScheduler {
             .count();
 
         // CronJob.validate returns Result<(), String>
-        job.validate(agent_count)
-            .map_err(RigError::InvalidInput)?;
+        job.validate(agent_count).map_err(RigError::InvalidInput)?;
 
         // Compute initial next_run
         job.next_run = Some(compute_next_run(&job.schedule));

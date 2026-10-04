@@ -7,13 +7,13 @@
 use super::event::{self, AppEvent};
 use super::screens::chat::{self, ChatAction, ChatState, Role};
 use super::theme;
-use rig_kernel::RigKernel;
-use rig_runtime::llm_driver::StreamEvent;
-use rig_types::agent::AgentId;
 use ratatui::layout::{Alignment, Constraint, Layout, Rect};
 use ratatui::style::Style;
 use ratatui::text::{Line, Span};
 use ratatui::widgets::Paragraph;
+use rig_kernel::RigKernel;
+use rig_runtime::llm_driver::StreamEvent;
+use rig_types::agent::AgentId;
 use std::path::PathBuf;
 use std::sync::{mpsc, Arc};
 use std::time::Duration;
@@ -612,8 +612,7 @@ impl StandaloneChat {
                 self.chat.status_msg = Some(format!("Spawning '{}' agent\u{2026}", t.name));
             }
             None => {
-                self.boot_error =
-                    Some("No agent templates found. Run `rig init`.".to_string());
+                self.boot_error = Some("No agent templates found. Run `rig init`.".to_string());
             }
         }
     }
@@ -650,15 +649,13 @@ impl StandaloneChat {
 
         match template {
             Some(t) => {
-                let manifest: rig_types::agent::AgentManifest =
-                    match toml::from_str(&t.content) {
-                        Ok(m) => m,
-                        Err(e) => {
-                            self.chat.status_msg =
-                                Some(format!("Invalid template '{}': {e}", t.name));
-                            return;
-                        }
-                    };
+                let manifest: rig_types::agent::AgentManifest = match toml::from_str(&t.content) {
+                    Ok(m) => m,
+                    Err(e) => {
+                        self.chat.status_msg = Some(format!("Invalid template '{}': {e}", t.name));
+                        return;
+                    }
+                };
                 let name = manifest.name.clone();
                 match kernel.spawn_agent(manifest) {
                     Ok(id) => {

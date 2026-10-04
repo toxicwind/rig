@@ -4,9 +4,7 @@
 
 use chrono::Utc;
 use rig_types::error::{RigError, RigResult};
-use rig_types::memory::{
-    Entity, EntityType, GraphMatch, GraphPattern, Relation, RelationType,
-};
+use rig_types::memory::{Entity, EntityType, GraphMatch, GraphPattern, Relation, RelationType};
 use rusqlite::Connection;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};

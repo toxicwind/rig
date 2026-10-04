@@ -1840,15 +1840,15 @@ impl App {
                 event::spawn_daemon_agent(base_url.clone(), toml_content, self.event_tx.clone());
             }
             Backend::InProcess { kernel } => {
-                let manifest: rig_types::agent::AgentManifest =
-                    match toml::from_str(&toml_content) {
-                        Ok(m) => m,
-                        Err(e) => {
-                            self.agents.status_msg = format!("Invalid manifest: {e}");
-                            self.agents.sub = agents::AgentSubScreen::AgentList;
-                            return;
-                        }
-                    };
+                let manifest: rig_types::agent::AgentManifest = match toml::from_str(&toml_content)
+                {
+                    Ok(m) => m,
+                    Err(e) => {
+                        self.agents.status_msg = format!("Invalid manifest: {e}");
+                        self.agents.sub = agents::AgentSubScreen::AgentList;
+                        return;
+                    }
+                };
                 let name = manifest.name.clone();
                 match kernel.spawn_agent(manifest) {
                     Ok(id) => self.enter_chat_inprocess(id, name),

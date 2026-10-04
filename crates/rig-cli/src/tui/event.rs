@@ -1,10 +1,10 @@
 //! Event system: crossterm polling, tick timer, streaming bridges.
 
+use ratatui::crossterm::event::{self, Event as CtEvent, KeyEvent, KeyEventKind};
 use rig_kernel::RigKernel;
 use rig_runtime::agent_loop::AgentLoopResult;
 use rig_runtime::llm_driver::StreamEvent;
 use rig_types::agent::AgentId;
-use ratatui::crossterm::event::{self, Event as CtEvent, KeyEvent, KeyEventKind};
 use std::sync::{mpsc, Arc};
 use std::time::Duration;
 
@@ -1119,8 +1119,7 @@ pub fn spawn_fetch_agent_mcp_servers(
                 if let Ok(mcp_tools) = kernel.mcp_tools.lock() {
                     let mut seen = std::collections::HashSet::new();
                     for tool in mcp_tools.iter() {
-                        if let Some(server) = rig_runtime::mcp::extract_mcp_server(&tool.name)
-                        {
+                        if let Some(server) = rig_runtime::mcp::extract_mcp_server(&tool.name) {
                             if seen.insert(server.to_string()) {
                                 available.push(server.to_string());
                             }

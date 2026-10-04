@@ -80,11 +80,10 @@ pub fn is_lean_query(message: &str) -> bool {
         return false;
     }
     const TOOL_KEYWORDS: &[&str] = &[
-        "tool", "execute", "run", "file", "read", "write", "search",
-        "create", "delete", "update", "list", "find", "open", "save",
-        "load", "fetch", "download", "upload", "edit", "modify",
-        "script", "command", "shell", "terminal", "code", "build",
-        "deploy", "commit", "push", "clone", "git", "test", "debug",
+        "tool", "execute", "run", "file", "read", "write", "search", "create", "delete", "update",
+        "list", "find", "open", "save", "load", "fetch", "download", "upload", "edit", "modify",
+        "script", "command", "shell", "terminal", "code", "build", "deploy", "commit", "push",
+        "clone", "git", "test", "debug",
     ];
     let lower = message.to_lowercase();
     let bytes = lower.as_bytes();

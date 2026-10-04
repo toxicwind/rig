@@ -6,9 +6,7 @@
 use crate::llm_driver::{CompletionRequest, CompletionResponse, LlmDriver, LlmError, StreamEvent};
 use async_trait::async_trait;
 use futures::StreamExt;
-use rig_types::message::{
-    ContentBlock, Message, MessageContent, Role, StopReason, TokenUsage,
-};
+use rig_types::message::{ContentBlock, Message, MessageContent, Role, StopReason, TokenUsage};
 use rig_types::tool::ToolCall;
 use serde::{Deserialize, Serialize};
 use tracing::{debug, warn};
