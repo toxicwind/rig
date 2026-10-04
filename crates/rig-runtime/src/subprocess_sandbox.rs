@@ -435,26 +435,15 @@ pub async fn kill_process_tree(pid: u32, grace_ms: u64) -> Result<bool, String> 
 async fn kill_tree_unix(pid: u32, grace_ms: u64) -> Result<bool, String> {
     use tokio::process::Command;
 
-    let pid_i32 = pid as i32;
-
-    // Try to kill the process group first (negative PID).
-    // This kills the process and all its children.
-    let group_kill = Command::new("kill")
-        .args(["-TERM", &format!("-{pid_i32}")])
+    // Send SIGTERM to the specific PID only (no process-group kill).
+    // Negative-PID (group) kills are unsafe here: the child inherits our
+    // process group, so `kill -TERM -<pid>` addresses a PGID that either does
+    // not exist or — via PID recycling — belongs to an unrelated process.
+    // On CI this deterministically SIGTERMed the GitHub runner (exit 143).
+    let _ = Command::new("kill")
+        .args(["-TERM", &pid.to_string()])
         .output()
         .await;
-
-    // Note: output() returns Ok even if `kill` exits non-zero, so check the
-    // exit status — not just whether the command spawned.
-    let group_kill_ok = group_kill.map(|o| o.status.success()).unwrap_or(false);
-
-    if !group_kill_ok {
-        // Fallback: kill just the process.
-        let _ = Command::new("kill")
-            .args(["-TERM", &pid.to_string()])
-            .output()
-            .await;
-    }
 
     // Wait for grace period.
     tokio::time::sleep(std::time::Duration::from_millis(grace_ms)).await;
@@ -473,13 +462,7 @@ async fn kill_tree_unix(pid: u32, grace_ms: u64) -> Result<bool, String> {
                 "Process still alive after grace period, sending SIGKILL"
             );
 
-            // Try group kill first.
-            let _ = Command::new("kill")
-                .args(["-9", &format!("-{pid_i32}")])
-                .output()
-                .await;
-
-            // Also try direct kill.
+            // Direct PID kill only (no process-group kill — see above).
             let _ = Command::new("kill")
                 .args(["-9", &pid.to_string()])
                 .output()

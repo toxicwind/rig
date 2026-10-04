@@ -84,21 +84,11 @@ impl ProcessManager {
             ));
         }
 
-        let mut cmd = tokio::process::Command::new(command);
-        cmd.args(args)
+        let mut child = tokio::process::Command::new(command)
+            .args(args)
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
-            .stderr(Stdio::piped());
-        // Put the child in its own process group so that kill_process_tree's
-        // negative-PID (process-group) kills target ONLY this child's tree.
-        // Without this, `kill -TERM -<pid>` addresses a PGID that either does
-        // not exist or — via PID recycling — belongs to an unrelated process.
-        #[cfg(unix)]
-        {
-            use std::os::unix::process::CommandExt;
-            cmd.as_std_mut().process_group(0);
-        }
-        let mut child = cmd
+            .stderr(Stdio::piped())
             .spawn()
             .map_err(|e| format!("Failed to start process '{}': {}", command, e))?;
 
