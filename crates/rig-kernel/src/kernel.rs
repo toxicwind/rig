@@ -3359,7 +3359,9 @@ impl RigKernel {
             .map(|e| e.manifest.model.base_url.is_some())
             .unwrap_or(false);
         let model_is_namespaced = model.contains('/');
-        if let Some(ep) = explicit_provider.filter(|_| !(agent_has_custom_url || model_is_namespaced)) {
+        if let Some(ep) =
+            explicit_provider.filter(|_| !(agent_has_custom_url || model_is_namespaced))
+        {
             let (valid, known_ids): (bool, Vec<String>) = self
                 .model_catalog
                 .read()
