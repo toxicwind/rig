@@ -1,12 +1,14 @@
 name = "coyote"
-description = "Autonomous agent inference engine. Routes through llama-swap AST matrix with sigil-driven control. First-class sovereign service."
+description = "Autonomous agent inference engine. Routes through llama-swap AST matrix with sigil-driven control. First-class estate-scripts service."
 version = "3.1.0"
 
 [model]
-# Uses llama-swap AST matrix — model aliases resolved dynamically
-alias = "kimi-auto"
-# Fallback chain: kimi-auto → local-fast → free (zero-cost providers)
-fallback = ["local-fast", "free"]
+# Cutover 2026-10-14: explicit flock route — same shape as oracle.toml,
+# which verified end-to-end (ORACLE-FLOCK-PONG via :25193).
+provider = "openai"
+model = "nvidia/nemotron-3-ultra-550b-a55b"
+api_key_env = "FLOCK_API_KEY"
+base_url = "http://127.0.0.1:25193/v1"
 
 [capabilities]
 autonomous = true

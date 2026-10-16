@@ -3340,7 +3340,26 @@ impl RigKernel {
         // silent Class-C misroute that blows up later at inference time.
         // Providers with no catalog models are left alone: with no positive
         // knowledge we claim none and let the custom-endpoint path proceed.
-        if let Some(ep) = explicit_provider {
+        //
+        // Custom-endpoint exemption (2026-10-14): when the agent's manifest
+        // carries a custom `base_url`, the builtin catalog is NOT authoritative
+        // for that provider — the endpoint resolves models dynamically (e.g.
+        // an OpenAI-compatible router serving nvidia/* or google/* ids). The
+        // auto-detect branch below already preserves the provider in that case;
+        // validation must be symmetric or `agent set --provider openai --model
+        // nvidia/...` rejects models the daemon happily serves.
+        //
+        // Namespaced-id exemption: builtin catalogs never use vendor-namespaced
+        // ids (`vendor/model`); those only exist behind dynamic resolvers
+        // (routers, gateways). Validating them against builtin lists is always
+        // a false positive, custom base_url or not.
+        let agent_has_custom_url = self
+            .registry
+            .get(agent_id)
+            .map(|e| e.manifest.model.base_url.is_some())
+            .unwrap_or(false);
+        let model_is_namespaced = model.contains('/');
+        if let Some(ep) = explicit_provider.filter(|_| !(agent_has_custom_url || model_is_namespaced)) {
             let (valid, known_ids): (bool, Vec<String>) = self
                 .model_catalog
                 .read()
@@ -9897,13 +9916,13 @@ system_prompt = "You are a test agent."
     fn test_resolve_reload_config_path_prefers_boot_path() {
         let cfg = KernelConfig {
             config_path: Some(std::path::PathBuf::from(
-                "/home/toxic/sovereign/config/rig-25196.toml",
+                "/home/toxic/estate-scripts/config/rig-25196.toml",
             )),
             ..Default::default()
         };
         assert_eq!(
             RigKernel::resolve_reload_config_path(&cfg),
-            std::path::PathBuf::from("/home/toxic/sovereign/config/rig-25196.toml")
+            std::path::PathBuf::from("/home/toxic/estate-scripts/config/rig-25196.toml")
         );
     }
 

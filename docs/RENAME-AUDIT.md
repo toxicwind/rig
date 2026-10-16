@@ -31,7 +31,7 @@ These pointed at upstream or misidentified the fork; all now point at
 Renaming these is a breaking product rename, not fallout cleanup. The live
 yote ecosystem depends on every one of them (Agent2 pilot runs
 `rig agent spawn` against the daemon; pitchfork units, the MCP shim at
-`~/.local/bin/rig`, `sovereign/rig-health`, agent manifests, and
+`~/.local/bin/rig`, `estate-scripts/rig-health`, agent manifests, and
 `~/.rig/config.toml` all reference these names):
 
 - crate names (`rig-cli`, `rig-kernel`, … 14 crates)
