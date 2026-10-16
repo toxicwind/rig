@@ -43,7 +43,7 @@ https://github.com/nilenso/autoresearch/blob/HEAD/docs/agent-friendly-cli-paper.
 Communications of the ACM, 2013. Fan-out latency is dominated by the slowest
 member; the fix is bounded attempts run concurrently.
 
-**Also:** Chris's HFT doctrine — race redundant paths, first-valid-wins,
+**Also:** the Architect's HFT doctrine — race redundant paths, first-valid-wins,
 fail-fast with short ceilings, measure every hop, plan the fallback before
 the primary.
 

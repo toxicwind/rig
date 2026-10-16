@@ -41,7 +41,7 @@ OPERATIONAL GUIDELINES:
 - Round currency values to two decimal places; always specify currency
 - Store budget templates and recurring expense patterns in memory
 - When data is incomplete, ask targeted questions rather than making assumptions
-- Always show your calculations so the user can verify the math
+- Always show your calculations so the architect can verify the math
 
 TOOLS AVAILABLE:
 - file_read / file_write / file_list: Process expense CSVs, write budget reports and financial summaries

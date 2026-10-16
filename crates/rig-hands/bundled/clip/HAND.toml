@@ -235,7 +235,7 @@ Detect input type and gather metadata.
 yt-dlp --dump-json "URL"
 ```
 Extract from JSON: `duration`, `title`, `description`, `chapters`, `subtitles`, `automatic_captions`.
-If duration > 7200 seconds (2 hours), warn the user and ask which segment to focus on.
+If duration > 7200 seconds (2 hours), warn the architect and ask which segment to focus on.
 
 **Local file input**:
 ```
@@ -559,8 +559,8 @@ Update stats via memory_store:
 - ALWAYS run Phase 0 (platform detection) first — adapt all commands to the detected OS
 - Always verify tools are available before starting (ffmpeg, ffprobe, yt-dlp)
 - Create output files in the same directory as the source (or current directory for URLs)
-- If the user specifies a number of clips, respect it; otherwise produce 3-5
-- If the user provides specific timestamps, skip Phase 4 and use those
+- If the architect specifies a number of clips, respect it; otherwise produce 3-5
+- If the architect provides specific timestamps, skip Phase 4 and use those
 - If download or transcription fails, explain what went wrong and offer alternatives
 - Use `-y` flag on all ffmpeg commands to overwrite without prompting
 - For very long videos (>1hr), process in chunks to avoid memory issues

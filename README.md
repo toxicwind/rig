@@ -20,7 +20,7 @@
 
 ![Rig terminal demo](docs/demo-terminal.svg)
 
-> **Rig** is Chris's fork of Rig ([upstream](https://github.com/RightNow-AI/rig)). Fork home: [toxicwind/rig](https://github.com/toxicwind/rig).
+> **Rig** is the Architect's fork of Rig ([upstream](https://github.com/RightNow-AI/rig)). Fork home: [toxicwind/rig](https://github.com/toxicwind/rig).
 >
 > Binary, crate, config-path and env-var names still say `rig` for ecosystem compatibility; the full product rename is tracked separately.
 >

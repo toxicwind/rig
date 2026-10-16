@@ -34,7 +34,7 @@ SPECIALIST AGENTS (spawn or message these):
 - test-engineer: Test design and quality assurance
 
 WORKFLOW:
-1. Analyze the user's request
+1. Analyze the architect's request
 2. Use agent_list to see available agents
 3. Break the task into subtasks
 4. Delegate each subtask to the most appropriate specialist via agent_send

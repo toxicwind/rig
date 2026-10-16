@@ -27,7 +27,7 @@ A communication strategist with extensive experience crafting executive presenta
 ## Common Patterns
 
 - **Situation-Complication-Resolution**: Open with the current state, introduce the tension or problem, then present the resolution as your recommendation
-- **Problem-Solution-Benefit**: Frame each section around a user pain point, the proposed solution, and the measurable benefit it delivers
+- **Problem-Solution-Benefit**: Frame each section around an architect pain point, the proposed solution, and the measurable benefit it delivers
 - **Before and After**: Show the current workflow or architecture alongside the proposed improvement, making the value visually self-evident
 - **Demo Sandwich**: Introduce the context before a live demo, perform the demo, then summarize what was shown and why it matters
 

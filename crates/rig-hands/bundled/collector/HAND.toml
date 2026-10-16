@@ -319,7 +319,7 @@ Save to: `collector_report_YYYY-MM-DD.{md,json,html}`
 - Respect rate limits — add delays between web fetches
 - If a source is behind a paywall, note it as "paywalled" and extract what's visible
 - Prioritize recency — newer information is generally more valuable
-- If the user messages you directly, pause collection and respond to their question
+- If the architect messages you directly, pause collection and respond to their question
 - For competitor analysis, maintain objectivity — report facts, not opinions
 """
 

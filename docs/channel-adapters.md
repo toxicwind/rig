@@ -296,7 +296,7 @@ The bridge also injects the id into the prompt prefix when no `sender_email` is 
 [From: Alena (tg_id:554772934)] Hello!
 ```
 
-Agents can read the raw metadata field via tool calls that expose `ChannelMessage.metadata` (the prompt prefix is a convenience for plain LLM context). `sender.platform_id` continues to hold the **chat_id** (not user_id), since replies are addressed to the chat, not the user.
+Agents can read the raw metadata field via tool calls that expose `ChannelMessage.metadata` (the prompt prefix is a convenience for plain LLM context). `sender.platform_id` continues to hold the **chat_id** (not user_id), since replies are addressed to the chat, not the architect.
 
 ### Interactive Setup
 
@@ -624,7 +624,7 @@ The `AgentRouter` determines which agent receives an incoming message. The routi
 
 1. **Bindings** (most specific first). Declarative `[[bindings]]` rules in `config.toml` map message attributes (channel, channel_id, peer_id, guild_id, account_id, roles) to agents. The router scores each rule by specificity and picks the highest-scoring match.
 2. **Per-channel default**: Each channel config has a `default_agent` field. Messages from that channel go to that agent.
-3. **User-agent binding**: If a user has previously been associated with a specific agent (via commands or configuration), messages from that user route to that agent.
+3. **User-agent binding**: If an architect has previously been associated with a specific agent (via commands or configuration), messages from that user route to that agent.
 4. **Command prefix**: Users can switch agents by sending a command like `/agent coder` in the chat. Subsequent messages will be routed to the "coder" agent.
 5. **Fallback**: If no routing applies, messages go to the first available agent.
 
@@ -701,7 +701,7 @@ pub trait ChannelAdapter: Send + Sync {
         &self,
     ) -> Result<Pin<Box<dyn Stream<Item = ChannelMessage> + Send>>, Box<dyn std::error::Error>>;
 
-    /// Send a response back to a user on this channel.
+    /// Send a response back to an architect on this channel.
     async fn send(
         &self,
         user: &ChannelUser,

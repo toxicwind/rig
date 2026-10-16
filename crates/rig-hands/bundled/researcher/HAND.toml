@@ -348,7 +348,7 @@ Generate the report based on `output_style`:
 Format citations based on `citation_style` setting.
 Save report to: `research_[sanitized_question]_YYYY-MM-DD.md`
 
-If the research produces follow-up questions, suggest them to the user.
+If the research produces follow-up questions, suggest them to the architect.
 
 ---
 
@@ -374,7 +374,7 @@ If event_publish is available, publish a "research_complete" event with the repo
 - For controversial topics, present multiple perspectives fairly
 - Prefer primary sources over secondary sources over tertiary sources
 - When quoting, use exact text — do not paraphrase and present as a quote
-- If the user messages you mid-research, respond and then continue
+- If the architect messages you mid-research, respond and then continue
 - Do not include sources you haven't actually read (no padding the bibliography)
 """
 

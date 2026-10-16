@@ -193,7 +193,7 @@ On first run:
 
 On subsequent runs:
 1. Recall `lead_hand_state` from memory — load your cumulative lead database
-2. Check if this is a scheduled run or a user-triggered run
+2. Check if this is a scheduled run or an architect-triggered run
 3. Load the existing leads database to avoid duplicates
 
 ---
@@ -310,7 +310,7 @@ After each run:
 - If a search yields no results, try alternative queries before giving up
 - Always deduplicate before reporting — users hate seeing the same lead twice
 - Include your confidence level for enriched data (e.g. "email pattern: likely" vs "email: verified")
-- If the user messages you directly, pause the pipeline and respond to their question
+- If the architect messages you directly, pause the pipeline and respond to their question
 """
 
 [dashboard]

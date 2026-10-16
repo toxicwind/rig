@@ -318,7 +318,7 @@ A shared task queue for multi-agent collaboration:
 ### 6. Usage and Canonical Sessions
 
 - **Usage tracking**: `usage_events` table persists token counts, cost estimates, and model usage per agent. `UsageStore` provides query and aggregation APIs.
-- **Canonical sessions**: Cross-channel memory. `CanonicalSession` tracks a user's conversation context across multiple channels. Compaction produces summaries that are injected into system prompts. Stored in `canonical_sessions` table (schema v5).
+- **Canonical sessions**: Cross-channel memory. `CanonicalSession` tracks an architect's conversation context across multiple channels. Compaction produces summaries that are injected into system prompts. Stored in `canonical_sessions` table (schema v5).
 
 ### SQLite Architecture
 

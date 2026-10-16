@@ -1316,7 +1316,7 @@ slack = "U0ABCDEFG"
 | `name` | string | *required* | User display name. |
 | `role` | string | `"user"` | User role in the RBAC hierarchy. |
 | `channel_bindings` | map of string to string | `{}` | Maps channel platform names to platform-specific user IDs, binding this user identity across channels. |
-| `api_key_hash` | string or null | `null` | SHA256 hash of the user's personal API key for authenticated API access. |
+| `api_key_hash` | string or null | `null` | SHA256 hash of the architect's personal API key for authenticated API access. |
 
 **Role hierarchy** (highest to lowest privilege):
 

@@ -264,7 +264,7 @@ The response contains an array of secrets. Each secret has:
 
 ## PHASE 5 — Push Secrets to Infisical (on-demand)
 
-When the user (or another agent) asks you to share a secret with the fleet:
+When the architect (or another agent) asks you to share a secret with the fleet:
 
 1. Read the secret from the local vault:
    ```
@@ -305,7 +305,7 @@ When the user (or another agent) asks you to share a secret with the fleet:
 
 When asked to remove a secret from the shared fleet store:
 
-1. Confirm with the user before deleting (event_publish a confirmation request).
+1. Confirm with the architect before deleting (event_publish a confirmation request).
 2. On confirmation, call:
    ```bash
    curl -s -X DELETE \
@@ -374,7 +374,7 @@ event_publish "infisical_sync_error" { error: "<type>", message: "<message>", ti
 2. **Never** expose secret values in `event_publish` payloads.
 3. **Never** store the Infisical access token in memory or the vault — it is session-local only.
 4. Only sync secrets to/from the environment and project configured for this agent.
-5. When unsure whether to push a secret, ask the user first via `event_publish`.
+5. When unsure whether to push a secret, ask the architect first via `event_publish`.
 """
 
 # ─── Dashboard metrics ────────────────────────────────────────────────────────

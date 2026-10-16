@@ -357,5 +357,5 @@ Generated: YYYY-MM-DD
 Before posting, evaluate each tweet:
 - Could this be misinterpreted? → Rephrase for clarity
 - Does this punch down? → Don't post
-- Would you be comfortable seeing this attributed to the user in a news article? → If no, don't post
+- Would you be comfortable seeing this attributed to the architect in a news article? → If no, don't post
 - Is this verifiably true? → If not sure, add hedging language or don't post

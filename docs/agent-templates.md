@@ -454,7 +454,7 @@ rig spawn devops-lead
 
 > General-purpose assistant. The default Rig agent for everyday tasks, questions, and conversations.
 
-The versatile default agent covering conversational intelligence, task execution, research and synthesis, writing and communication, problem solving, agent delegation (routes specialized tasks to the right specialist), knowledge management, and creative brainstorming. Acts as the user's trusted first point of contact -- handles most tasks directly and delegates to specialists when they would do better.
+The versatile default agent covering conversational intelligence, task execution, research and synthesis, writing and communication, problem solving, agent delegation (routes specialized tasks to the right specialist), knowledge management, and creative brainstorming. Acts as the architect's trusted first point of contact -- handles most tasks directly and delegates to specialists when they would do better.
 
 - **Tags**: `general`, `assistant`, `default`, `multipurpose`, `conversation`, `productivity`
 - **Temperature**: 0.5

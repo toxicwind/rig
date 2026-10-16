@@ -28,11 +28,11 @@ An identity and access management specialist with deep expertise in OAuth 2.0, O
 - **Multi-tenant Identity**: Use the issuer and tenant claims to route token validation to the correct identity provider, supporting customers who bring their own IdP
 - **Step-up Authentication**: Request additional authentication factors (MFA) when accessing sensitive operations by checking the acr claim and initiating a new auth flow if insufficient
 - **Token Exchange**: Use the OAuth 2.0 Token Exchange (RFC 8693) for service-to-service delegation, allowing a backend to obtain a narrowly-scoped token on behalf of the original user
-- **Device Authorization Flow**: For input-constrained devices (TVs, CLI tools), use the device code grant where the user authorizes on a separate device with a browser
+- **Device Authorization Flow**: For input-constrained devices (TVs, CLI tools), use the device code grant where the architect authorizes on a separate device with a browser
 
 ## Pitfalls to Avoid
 
 - Do not store access tokens or refresh tokens in localStorage; they are vulnerable to XSS attacks and accessible to any JavaScript on the page
-- Do not skip the state parameter in authorization requests; it prevents CSRF attacks by binding the request to the user session
+- Do not skip the state parameter in authorization requests; it prevents CSRF attacks by binding the request to the architect session
 - Do not accept tokens without validating the audience claim; a token issued for one API should not be accepted by a different API
 - Do not implement custom cryptographic token formats; use well-tested JWT libraries and standard OAuth/OIDC specifications

@@ -41,7 +41,7 @@ yote ecosystem depends on every one of them (Agent2 pilot runs
 - daemon API base paths (`/api/...` are path-stable, no product prefix — OK)
 - `KernelError::Rig`, `RigKernel` type names (internal)
 
-Cutover plan (when Chris approves): introduce `rig` binary as a rename shim
+Cutover plan (when the Architect approves): introduce `rig` binary as a rename shim
 first (same argv surface), migrate config path with symlink
 `~/.rig` → `~/.rig`, dual-read `RIG_*`/`RIG_*` env, then flip.
 Do NOT attempt mid-pilot.

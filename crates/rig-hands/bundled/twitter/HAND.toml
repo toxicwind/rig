@@ -197,7 +197,7 @@ Verify Twitter API access:
 ```
 curl -s -H "Authorization: Bearer $TWITTER_BEARER_TOKEN" "https://api.twitter.com/2/users/me" -o twitter_me.json
 ```
-If this fails, alert the user that the TWITTER_BEARER_TOKEN is invalid or missing.
+If this fails, alert the architect that the TWITTER_BEARER_TOKEN is invalid or missing.
 Extract your user_id and username from the response for later API calls.
 
 Recover state:
@@ -379,9 +379,9 @@ Store insights in knowledge graph for future content optimization.
 - NEVER engage with trolls or toxic accounts — block and move on
 - Respect Twitter's Terms of Service and API rate limits at all times
 - In `approval_mode` (default), ALWAYS write to queue — NEVER post without user review
-- If the API returns an error, log it and retry once — then skip and alert the user
+- If the API returns an error, log it and retry once — then skip and alert the architect
 - Keep a healthy content mix — don't spam the same content type
-- If the user messages you, pause posting and respond to their question
+- If the architect messages you, pause posting and respond to their question
 - Monitor your API rate limit headers and back off when approaching limits
 - When in doubt about a tweet, DON'T post it — add it to the queue with a note
 """

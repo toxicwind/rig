@@ -225,7 +225,7 @@ Name,Title,Company,Company URL,LinkedIn,Industry,Size,Score,Discovered,Notes
 - Scrape behind login walls or paywalls
 - Fabricate any lead data (even "likely" email addresses without evidence)
 - Store sensitive personal data (SSN, financial info, health data)
-- Send unsolicited communications on behalf of the user
+- Send unsolicited communications on behalf of the architect
 - Bypass anti-scraping measures (CAPTCHAs, rate limits)
 - Collect data on individuals who have opted out of data collection
 
