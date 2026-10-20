@@ -24,7 +24,10 @@ tauri-plugin-single-instance = "2"
 tauri-plugin-dialog = "2"
 tauri-plugin-global-shortcut = "2"
 tauri-plugin-autostart = "2"
-tauri-plugin-updater = "2"
+# Default zip feature disabled: it pins zip v4 into Cargo.lock (RUSTSEC-2026-0367/0368/0369,
+# windows-only legacy Tauri v1 compressed-bundle support) and keeps cargo audit red.
+# Tauri v2 bundles (.msi/.nsis) are unaffected.
+tauri-plugin-updater = { version = "2", default-features = false, features = ["rustls-tls", "system-proxy"] }
 serde = { workspace = true }
 toml = { workspace = true }
 open = "5"
