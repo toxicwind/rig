@@ -1,0 +1,41 @@
+[package]
+name = "rig-desktop"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Native desktop application for the Rig Agent OS (Tauri 2.0)"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+rig-kernel = { path = "../rig-kernel" }
+rig-api = { path = "../rig-api" }
+rig-types = { path = "../rig-types" }
+tokio = { workspace = true }
+axum = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+tauri = { version = "2", features = ["tray-icon", "image-png"] }
+tauri-plugin-notification = "2"
+tauri-plugin-shell = "2"
+tauri-plugin-single-instance = "2"
+tauri-plugin-dialog = "2"
+tauri-plugin-global-shortcut = "2"
+tauri-plugin-autostart = "2"
+# Default zip feature disabled: it pins zip v4 into Cargo.lock (RUSTSEC-2026-0367/0368/0369,
+# windows-only legacy Tauri v1 compressed-bundle support) and keeps cargo audit red.
+# Tauri v2 bundles (.msi/.nsis) are unaffected.
+tauri-plugin-updater = { version = "2", default-features = false, features = ["rustls-tls", "system-proxy"] }
+serde = { workspace = true }
+toml = { workspace = true }
+open = "5"
+
+[features]
+# Tauri uses custom-protocol in production builds
+custom-protocol = ["tauri/custom-protocol"]
+
+[[bin]]
+name = "rig-desktop"
+path = "src/main.rs"
