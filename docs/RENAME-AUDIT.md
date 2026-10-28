@@ -1,4 +1,4 @@
-# Rig rename audit — rig → rig (2026-09-20)
+# Rig rename audit — openfang → rig (2026-09-20; cutover COMPLETED 2026-10-28)
 
 ## What "the rename" means here
 
@@ -41,10 +41,16 @@ yote ecosystem depends on every one of them (Agent2 pilot runs
 - daemon API base paths (`/api/...` are path-stable, no product prefix — OK)
 - `KernelError::Rig`, `RigKernel` type names (internal)
 
-Cutover plan (when the Architect approves): introduce `rig` binary as a rename shim
-first (same argv surface), migrate config path with symlink
-`~/.rig` → `~/.rig`, dual-read `RIG_*`/`RIG_*` env, then flip.
-Do NOT attempt mid-pilot.
+Cutover plan — COMPLETED 2026-10-28 (architect overrode the stale "no-go",
+which was prose corrupted by the rename itself: it read "~/.rig → ~/.rig"
+symlink and "RIG_*/RIG_*" dual-read — self-referential nonsense):
+  - ~/.openfang state (fleet agents, stake-registry, key-pool, workspaces)
+    migrated into ~/.rig (rig-newer copies won collisions; 13 newer
+    workspaces moved).
+  - fleet-join.ts repointed: ~/.rig/agents, RIG_API, rig-lane.
+  - estate src/scripts live reads of ~/.openfang repointed to ~/.rig
+    (model-rank-and-route.ts, sync_clients_from_swap.ts, openfang_providers.ts).
+  - legacy home archived at ~/archive/retired-openfang-home-20261028.
 
 ## Stale-but-harmless (left as-is)
 
