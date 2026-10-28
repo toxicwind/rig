@@ -1,5 +1,5 @@
 name = "coyote"
-description = "Autonomous agent inference engine. Routes through llama-swap AST matrix with sigil-driven control. First-class estate-scripts service."
+description = "Autonomous agent inference engine. Routes through llama-swap AST matrix with sigil-driven control. First-class rig service."
 version = "3.1.0"
 
 [model]

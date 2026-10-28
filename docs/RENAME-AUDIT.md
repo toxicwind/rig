@@ -31,7 +31,7 @@ These pointed at upstream or misidentified the fork; all now point at
 Renaming these is a breaking product rename, not fallout cleanup. The live
 yote ecosystem depends on every one of them (Agent2 pilot runs
 `rig agent spawn` against the daemon; pitchfork units, the MCP shim at
-`~/.local/bin/rig`, `estate-scripts/rig-health`, agent manifests, and
+`~/.local/bin/rig`, `rig-health (estate-scripts ghost retired 2026-10-28)`, agent manifests, and
 `~/.rig/config.toml` all reference these names):
 
 - crate names (`rig-cli`, `rig-kernel`, … 14 crates)
@@ -54,3 +54,10 @@ Do NOT attempt mid-pilot.
   benchmark run.
 - `rig.sh` doc-site links in prose — upstream docs are still the
   reference until fork docs exist.
+
+## 2026-10-28 — estate-scripts ghost cutover completed
+
+- `/home/toxic/estate-scripts/config/rig-25196.toml` kernel test fixtures -> 
+  `~/.rig/config-25196.toml` (rig's live config home; estate-scripts never existed).
+- Agent personas (coyote.toml, coyote/system.md, oracle.toml) rebranded estate-scripts -> rig source.
+- Not a live-path change: estate-scripts was never a real dir; refs were test/prose only.
