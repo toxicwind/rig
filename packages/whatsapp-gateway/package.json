@@ -1,4 +1,8 @@
 {
+  "devDependencies": {
+    "@types/bun": "^1.4.4",
+    "bun-types": "^1.4.4"
+  },
   "name": "@rig/whatsapp-gateway",
   "version": "0.1.0",
   "description": "WhatsApp Web gateway for Rig — QR code login, bidirectional messaging via Baileys",
