@@ -17,3 +17,10 @@ description = "Build the rig binary (post-rename successor of the openfang binar
 run = "cargo build -p rig-cli"
 sources = ["Cargo.toml", "Cargo.lock", "crates/**/Cargo.toml", "crates/**/src/**/*.rs"]
 outputs = ["target/debug/rig"]
+
+# Maximal cache stack (2026-10-31): sccache L1 + cargo-reapi shared CAS.
+# `mise run rig-build` = release build through the shared cache so any
+# agent's build warms every other agent's build. NativeLink REAPI backend
+# (:25155) ready once reclient rewrapper is installed.
+[tasks.rig-build]
+run = "cargo reapi build --backend cache --cache-dir /home/toxic/.cache/cargo-reapi-cas --release"
