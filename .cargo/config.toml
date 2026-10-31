@@ -1,0 +1,4 @@
+[build]
+# sccache: local compile cache — release rebuilds after single-crate fixes
+# must be seconds, not minutes (audit 2026-10-31: cold release rebuild 7m+).
+rustc-wrapper = "/usr/bin/sccache"
