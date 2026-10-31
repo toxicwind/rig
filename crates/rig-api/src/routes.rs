@@ -384,18 +384,31 @@ pub async fn send_message(
     };
 
     let kernel_handle: Arc<dyn KernelHandle> = state.kernel.clone() as Arc<dyn KernelHandle>;
-    match state
-        .kernel
-        .send_message_with_handle_and_blocks(
-            agent_id,
-            &req.message,
-            Some(kernel_handle),
-            content_blocks,
-            req.sender_id,
-            req.sender_name,
-        )
-        .await
-    {
+    // Bounded inference: a stalled model lane must not hang the client forever
+    // (audit 2026-10-31: /api/agents/:id/message blocked indefinitely).
+    const INFERENCE_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(300);
+    let inference = async {
+        state
+            .kernel
+            .send_message_with_handle_and_blocks(
+                agent_id,
+                &req.message,
+                Some(kernel_handle),
+                content_blocks,
+                req.sender_id,
+                req.sender_name,
+            )
+            .await
+    };
+    match tokio::time::timeout(INFERENCE_TIMEOUT, inference).await {
+        Err(_) => {
+            tracing::warn!("send_message timed out for agent {id} after 300s (stalled model lane?)");
+            (
+                StatusCode::GATEWAY_TIMEOUT,
+                Json(serde_json::json!({"error": "Inference timed out after 300s — model lane stalled or overloaded"})),
+            )
+        }
+        Ok(result) => match result {
         Ok(result) => {
             // Strip <think>...</think> blocks from model output
             let cleaned = crate::ws::strip_think_tags(&result.response);
@@ -438,6 +451,7 @@ pub async fn send_message(
                 status,
                 Json(serde_json::json!({"error": format!("Message delivery failed: {e}")})),
             )
+        }
         }
     }
 }
