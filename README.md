@@ -20,11 +20,11 @@
 ## Features
 
 - **Agent lifecycle** — spawn, list, chat, clone, kill; per-agent mode switching (Full / Assist / Observe)
-- **Memory substrate** — SQLite (schema v5): structured KV, semantic search with vector embeddings, knowledge graph, sessions, task board, usage events
+- **Memory substrate** — SQLite (schema v8): structured KV, semantic search with vector embeddings, knowledge graph, sessions, task board, usage events
 - **Tools & sandbox** — built-in tools (filesystem, web search/fetch with SSRF protection, shell, scheduling, inter-agent) plus MCP servers; WASM sandbox via Wasmtime
 - **Workflows & triggers** — pipelines with branching, fan-out parallelism, loops, variable expansion, and event-pattern triggers with fire limits
 - **40 channel adapters** — Telegram, Discord, Slack, WhatsApp, Signal, Matrix, Email, SMS, IRC, and more, with per-user rate limiting and output formatters
-- **60 bundled skills** — `skill.toml` + Python/WASM/Node/Prompt-only bundles, SHA256-verified manifests, prompt-injection scanning
+- **61 bundled skills** — `skill.toml` + Python/WASM/Node/Prompt-only bundles, SHA256-verified manifests, prompt-injection scanning
 - **OFP peer network** — JSON-framed peer-to-peer agent networking over TCP with HMAC-SHA256 mutual auth (`rig-wire`)
 - **Live dashboard** — every agent visible at a glance; desktop app (Tauri 2.0) and ratatui TUI included
 
@@ -38,7 +38,7 @@ flowchart LR
         CH[Channels: Telegram, Discord, Slack, ...]
         PEERS[OFP peers / A2A agents]
     end
-    API[rig-api — Axum, 76 endpoints] --> K[rig-kernel]
+    API[rig-api — Axum, 156 API routes] --> K[rig-kernel]
     K --> RT[rig-runtime — agent loop, LLM drivers, WASM sandbox]
     K --> MEM[(rig-memory — SQLite)]
     CH --> API
@@ -55,10 +55,10 @@ flowchart LR
 | `rig-memory` | SQLite memory substrate, sessions, semantic search, usage tracking |
 | `rig-runtime` | Agent loop, 3 LLM drivers, WASM sandbox, MCP client, A2A, web tools |
 | `rig-kernel` | Central coordinator: registry, scheduler, supervisor, workflows, triggers, metering, RBAC |
-| `rig-api` | Axum HTTP API: 76 endpoints, WS + SSE streaming, auth, rate limiting |
+| `rig-api` | Axum HTTP API: 156 API routes, WS + SSE streaming, auth, rate limiting |
 | `rig-channels` | 40 channel adapters, bridge manager, formatters, rate limiter |
 | `rig-wire` | OFP peer-to-peer networking with HMAC-SHA256 auth |
-| `rig-skills` | 60 bundled skills, registries, verification, injection scanning |
+| `rig-skills` | 61 bundled skills, registries, verification, injection scanning |
 | `rig-migrate` | One-command migration from OpenClaw (`rig migrate --from openclaw`) |
 | `rig-desktop` | Tauri 2.0 desktop app (tray, notifications, single-instance) |
 | `rig-hands` | Curated autonomous capability packages |
@@ -92,7 +92,7 @@ Config lives at `~/.rig/config.toml` — start from [`rig.toml.example`](rig.tom
 
 | Surface | Where |
 |---------|-------|
-| REST / WS / SSE | 76 endpoints under `/api` — see [docs/api-reference.md](docs/api-reference.md) |
+| REST / WS / SSE | 156 API routes under `/api` — see [docs/api-reference.md](docs/api-reference.md) |
 | OpenAI-compatible | `POST /v1/chat/completions`, `GET /v1/models` |
 | A2A | `GET /.well-known/agent.json` (Agent Card), `/a2a/*` task routes |
 | MCP | client connections via `[[mcp_servers]]`; built-in server mode via `rig mcp` |
