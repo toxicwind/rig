@@ -591,12 +591,19 @@ fn assemble_assistant_message(
     // regardless of which server version we're talking to. Old servers
     // ignore `reasoning`; new vLLM ignores `reasoning_content` (and would
     // otherwise silently strip our thinking, see PR vllm#33402).
-    let (reasoning_content, reasoning) = if let Some(text) = reasoning_field {
-        (Some(text.clone()), Some(text))
-    } else if needs_reasoning {
-        // Moonshot/Kimi legacy contract: empty `reasoning_content` to disable
-        // thinking on tool-call multi-turn. The `reasoning` field stays unset.
-        (Some(String::new()), None)
+    // Issue #1157 legacy: only Moonshot/Kimi/reasoner endpoints accept
+    // `reasoning_content`/`reasoning` in multi-turn history. NIM/vLLM
+    // non-reasoning endpoints reject the field with 400 wrong_api_format
+    // (2026-10-31: hephaistos rig agent, nemotron-ultra history with a
+    // Thinking block). Gate EVERYTHING, including the persisted trace.
+    let (reasoning_content, reasoning) = if needs_reasoning {
+        if let Some(text) = reasoning_field {
+            (Some(text.clone()), Some(text))
+        } else {
+            // Moonshot/Kimi legacy contract: empty `reasoning_content` to
+            // disable thinking on tool-call multi-turn. `reasoning` unset.
+            (Some(String::new()), None)
+        }
     } else {
         (None, None)
     };
