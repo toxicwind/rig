@@ -2036,7 +2036,12 @@ mod tests {
     /// Outbound assembler must emit BOTH `reasoning` and `reasoning_content`
     /// when a `Thinking` block carries the `reasoning_content` format hint,
     /// so the persisted thinking reaches the model regardless of whether
-    /// the upstream server is pre- or post-vLLM 0.19.
+    /// the upstream server is pre- or post-vLLM 0.19. Since 3159d2d the
+    /// dual-emit applies only on reasoner endpoints: `needs_reasoning_content`
+    /// gates both fields, because non-reasoning endpoints (e.g. NIM) reject
+    /// the field with 400 wrong_api_format. Hence this test runs against a
+    /// recognized reasoner model; the suppression case is covered by
+    /// `test_assemble_non_reasoner_model_suppresses_reasoning_fields` below.
     #[test]
     fn test_assemble_emits_both_reasoning_fields_for_vllm_compat() {
         let driver = OpenAIDriver::new("test".to_string(), "http://localhost:8000/v1".to_string());
@@ -2051,7 +2056,7 @@ mod tests {
                 provider_metadata: None,
             },
         ];
-        let msg = assemble_assistant_message(&blocks, "minimax-m2", &driver);
+        let msg = assemble_assistant_message(&blocks, "deepseek-reasoner", &driver);
         assert_eq!(
             msg.reasoning_content.as_deref(),
             Some("MARKER-vllm-019"),
@@ -2067,6 +2072,41 @@ mod tests {
         let json = serde_json::to_value(&msg).unwrap();
         assert_eq!(json["reasoning_content"], "MARKER-vllm-019");
         assert_eq!(json["reasoning"], "MARKER-vllm-019");
+    }
+
+    /// 3159d2d regression guard: on a non-reasoner endpoint the assembler
+    /// must suppress BOTH reasoning fields even when a `Thinking` block
+    /// carries a `reasoning_content` format hint — NIM rejects such history
+    /// with 400 wrong_api_format. The persisted trace is dropped rather
+    /// than failing the request; this is the deliberate trade-off of the
+    /// 3159d2d gate (and why the vLLM-compat test above runs against a
+    /// recognized reasoner model instead of minimax-m2).
+    #[test]
+    fn test_assemble_non_reasoner_model_suppresses_reasoning_fields() {
+        let driver = OpenAIDriver::new("test".to_string(), "http://localhost:8000/v1".to_string());
+        let blocks = vec![
+            ContentBlock::Thinking {
+                thinking: "MARKER-vllm-019".to_string(),
+                signature: None,
+                provider_metadata: Some(serde_json::json!({"format": "reasoning_content"})),
+            },
+            ContentBlock::Text {
+                text: "final".to_string(),
+                provider_metadata: None,
+            },
+        ];
+        let msg = assemble_assistant_message(&blocks, "minimax-m2", &driver);
+        assert!(
+            msg.reasoning_content.is_none(),
+            "non-reasoner endpoint must not receive legacy reasoning_content (NIM 400)"
+        );
+        assert!(
+            msg.reasoning.is_none(),
+            "non-reasoner endpoint must not receive reasoning either"
+        );
+        let json = serde_json::to_value(&msg).unwrap();
+        assert!(json.get("reasoning").is_none());
+        assert!(json.get("reasoning_content").is_none());
     }
 
     /// Non-reasoning models (gpt-4o, claude, …) must NOT carry either
