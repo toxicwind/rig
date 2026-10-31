@@ -402,57 +402,61 @@ pub async fn send_message(
     };
     match tokio::time::timeout(INFERENCE_TIMEOUT, inference).await {
         Err(_) => {
-            tracing::warn!("send_message timed out for agent {id} after 300s (stalled model lane?)");
+            tracing::warn!(
+                "send_message timed out for agent {id} after 300s (stalled model lane?)"
+            );
             (
                 StatusCode::GATEWAY_TIMEOUT,
-                Json(serde_json::json!({"error": "Inference timed out after 300s — model lane stalled or overloaded"})),
+                Json(
+                    serde_json::json!({"error": "Inference timed out after 300s — model lane stalled or overloaded"}),
+                ),
             )
         }
         Ok(result) => match result {
-        Ok(result) => {
-            // Strip <think>...</think> blocks from model output
-            let cleaned = crate::ws::strip_think_tags(&result.response);
+            Ok(result) => {
+                // Strip <think>...</think> blocks from model output
+                let cleaned = crate::ws::strip_think_tags(&result.response);
 
-            // If the agent intentionally returned a silent/NO_REPLY response,
-            // return an empty string — don't generate debug fallback text.
-            let response = if result.silent {
-                String::new()
-            } else if cleaned.trim().is_empty() {
-                format!(
+                // If the agent intentionally returned a silent/NO_REPLY response,
+                // return an empty string — don't generate debug fallback text.
+                let response = if result.silent {
+                    String::new()
+                } else if cleaned.trim().is_empty() {
+                    format!(
                     "[The agent completed processing but returned no text response. ({} in / {} out | {} iter)]",
                     result.total_usage.input_tokens,
                     result.total_usage.output_tokens,
                     result.iterations,
                 )
-            } else {
-                cleaned
-            };
-            (
-                StatusCode::OK,
-                Json(serde_json::json!(MessageResponse {
-                    response,
-                    input_tokens: result.total_usage.input_tokens,
-                    output_tokens: result.total_usage.output_tokens,
-                    iterations: result.iterations,
-                    cost_usd: result.cost_usd,
-                })),
-            )
-        }
-        Err(e) => {
-            tracing::warn!("send_message failed for agent {id}: {e}");
-            let status = if format!("{e}").contains("Agent not found") {
-                StatusCode::NOT_FOUND
-            } else if format!("{e}").contains("quota") || format!("{e}").contains("Quota") {
-                StatusCode::TOO_MANY_REQUESTS
-            } else {
-                StatusCode::INTERNAL_SERVER_ERROR
-            };
-            (
-                status,
-                Json(serde_json::json!({"error": format!("Message delivery failed: {e}")})),
-            )
-        }
-        }
+                } else {
+                    cleaned
+                };
+                (
+                    StatusCode::OK,
+                    Json(serde_json::json!(MessageResponse {
+                        response,
+                        input_tokens: result.total_usage.input_tokens,
+                        output_tokens: result.total_usage.output_tokens,
+                        iterations: result.iterations,
+                        cost_usd: result.cost_usd,
+                    })),
+                )
+            }
+            Err(e) => {
+                tracing::warn!("send_message failed for agent {id}: {e}");
+                let status = if format!("{e}").contains("Agent not found") {
+                    StatusCode::NOT_FOUND
+                } else if format!("{e}").contains("quota") || format!("{e}").contains("Quota") {
+                    StatusCode::TOO_MANY_REQUESTS
+                } else {
+                    StatusCode::INTERNAL_SERVER_ERROR
+                };
+                (
+                    status,
+                    Json(serde_json::json!({"error": format!("Message delivery failed: {e}")})),
+                )
+            }
+        },
     }
 }
 

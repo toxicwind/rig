@@ -1,4 +1,8 @@
 [build]
-# sccache: local compile cache — release rebuilds after single-crate fixes
-# must be seconds, not minutes (audit 2026-10-31: cold release rebuild 7m+).
-rustc-wrapper = "/usr/bin/sccache"
+# NOTE (2026-10-31, CI fix): do NOT set rustc-wrapper here with an absolute
+# host-local path. c10108e4 set it to /usr/bin/sccache, which does not exist
+# on GitHub Actions runners (and is D:/usr/bin/sccache nonsense on Windows),
+# so every Check/Test/Clippy job failed instantly with "could not execute
+# process ... No such file or directory" (run 41202263758). Dev machines that
+# have sccache should export RUSTC_WRAPPER=/usr/bin/sccache in their own
+# environment instead — env vars override this file and stay off CI.
