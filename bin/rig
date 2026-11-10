@@ -1,0 +1,4 @@
+#!/usr/bin/env bun
+// rig — autonomous LLM diff agent
+import { main } from "../src/rig_agent.ts";
+await main(process.argv.slice(2));

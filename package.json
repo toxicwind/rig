@@ -1,0 +1,36 @@
+{
+  "name": "rig-agent-os",
+  "version": "0.1.0",
+  "description": "An open-source Agent Operating System in Rust",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "bun --hot run src/main.ts",
+    "test": "bun test",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "lint": "biome check --write .",
+    "fmt": "biome format --write .",
+    "build": "bun build src/main.ts --target bun --outdir ./dist"
+  },
+  "bin": {
+    "rig": "bin/rig.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.27.0",
+    "@google/generative-ai": "^0.21.0",
+    "ai": "^3.3.0",
+    "axios": "^1.7.2",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "openai": "^4.52.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.8.3",
+    "@types/bun": "latest",
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.14.9",
+    "bun-types": "latest",
+    "typescript": "^5.5.2"
+  },
+  "private": true
+}
